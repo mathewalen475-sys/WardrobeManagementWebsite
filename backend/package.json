@@ -1,0 +1,21 @@
+{
+  "name": "wardrobe-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "groq-sdk": "^1.1.2",
+    "mongoose": "^9.4.1",
+    "multer": "^2.1.1",
+    "uuid": "^13.0.0"
+  }
+}

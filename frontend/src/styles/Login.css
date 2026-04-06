@@ -73,6 +73,7 @@
 /* INPUT FIELDS */
 
 .login-card input[type="email"],
+.login-card input[type="text"],
 .login-card input[type="password"] {
 
   width: 100%;
@@ -168,6 +169,17 @@
   background: #6a3b24;
 
   color: white;
+}
+
+.login-btn-outline:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  margin: -20px 0 20px;
+  color: #a52222;
+  font-size: 14px;
 }
 
 

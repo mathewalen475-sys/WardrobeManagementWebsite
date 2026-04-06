@@ -1,11 +1,22 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import type { ReactElement } from "react";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Home from "./pages/Homepage";
 import CalendarPage from "./pages/CalenderPage";
 import Scheduler from "./pages/Scheduler";
 import Uploader from "./pages/Uploader";
+import { isAuthenticated } from "./services/auth";
+
+function ProtectedRoute({ children }: { children: ReactElement }) {
+  if (!isAuthenticated()) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
 
 function SchedulerRoute() {
   const navigate = useNavigate();
@@ -37,17 +48,66 @@ function App() {
       <Route path="/" element={<Landing />} />
 
       <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Login />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/homepage" element={<Home />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/home"
+        element={(
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/homepage"
+        element={(
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        )}
+      />
 
-      <Route path="/calendar" element={<CalendarPage />} />
-      <Route path="/calender" element={<CalendarPage />} />
+      <Route
+        path="/calendar"
+        element={(
+          <ProtectedRoute>
+            <CalendarPage />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/calender"
+        element={(
+          <ProtectedRoute>
+            <CalendarPage />
+          </ProtectedRoute>
+        )}
+      />
 
-      <Route path="/scheduler" element={<SchedulerRoute />} />
+      <Route
+        path="/scheduler"
+        element={(
+          <ProtectedRoute>
+            <SchedulerRoute />
+          </ProtectedRoute>
+        )}
+      />
 
-      <Route path="/uploader" element={<UploaderRoute />} />
-      <Route path="/ratings" element={<UploaderRoute />} />
+      <Route
+        path="/uploader"
+        element={(
+          <ProtectedRoute>
+            <UploaderRoute />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/ratings"
+        element={(
+          <ProtectedRoute>
+            <UploaderRoute />
+          </ProtectedRoute>
+        )}
+      />
 
     </Routes>
   );
