@@ -1,58 +1,30 @@
-import fs from 'fs';
-import path from 'path';
 import { Router } from 'express';
 import multer from 'multer';
-import { v4 as uuidv4 } from 'uuid';
 
 import { supabaseAdmin } from '../lib/supabase.js';
+import { uploadMultipleToSupabase } from '../lib/storage.js';
 
 const router = Router();
 
 const MAX_FILES = 10;
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const MIME_TO_EXT = new Map([
-  ['image/jpeg', '.jpg'],
-  ['image/png', '.png'],
-  ['image/webp', '.webp'],
-  ['image/gif', '.gif'],
-  ['image/bmp', '.bmp'],
-  ['image/tiff', '.tiff'],
-  ['image/svg+xml', '.svg'],
-  ['image/heic', '.heic'],
-  ['image/heif', '.heif'],
-  ['image/avif', '.avif'],
-  ['image/x-icon', '.ico'],
-  ['image/vnd.microsoft.icon', '.ico'],
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/bmp',
+  'image/tiff',
+  'image/svg+xml',
+  'image/heic',
+  'image/heif',
+  'image/avif',
+  'image/x-icon',
+  'image/vnd.microsoft.icon',
 ]);
-const ALLOWED_MIME_TYPES = new Set(MIME_TO_EXT.keys());
-const uploadDir = path.resolve(process.cwd(), 'public', 'uploads');
-
-function ensureUploadDirectory() {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-function getExtensionFromMimeType(mimetype) {
-  return MIME_TO_EXT.get(mimetype) || '';
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    try {
-      ensureUploadDirectory();
-      cb(null, uploadDir);
-    } catch (error) {
-      cb(error);
-    }
-  },
-  filename: (_req, file, cb) => {
-    const ext = getExtensionFromMimeType(file.mimetype) || path.extname(file.originalname) || '.img';
-    const safeName = `${Date.now()}-${uuidv4()}${ext.toLowerCase()}`;
-    cb(null, safeName);
-  },
-});
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     files: MAX_FILES,
     fileSize: MAX_FILE_SIZE_BYTES,
@@ -68,12 +40,6 @@ const upload = multer({
     cb(null, true);
   },
 });
-
-async function removeFiles(filePaths) {
-  await Promise.allSettled(
-    filePaths.map((filePath) => fs.promises.unlink(filePath)),
-  );
-}
 
 router.post('/upload-images', (req, res) => {
   upload.array('images', MAX_FILES)(req, res, async (uploadError) => {
@@ -99,9 +65,12 @@ router.post('/upload-images', (req, res) => {
       return res.status(400).json({ error: 'At least one image is required in the images field.' });
     }
 
-    const imageUrls = files.map((file) => `${req.protocol}://${req.get('host')}/uploads/${file.filename}`);
-
     try {
+      /* ── Upload files to Supabase Storage ── */
+      const uploaded = await uploadMultipleToSupabase(files, 'clothes');
+      const imageUrls = uploaded.map((item) => item.publicUrl);
+
+      /* ── Save URLs to database ── */
       const { data, error } = await supabaseAdmin
         .from('image_uploads')
         .insert({
@@ -112,7 +81,6 @@ router.post('/upload-images', (req, res) => {
         .single();
 
       if (error || !data) {
-        await removeFiles(files.map((file) => file.path));
         return res.status(500).json({
           error: 'Failed to save image URLs to the database.',
           details: error?.message || 'Unknown Supabase insert failure.',
@@ -125,9 +93,11 @@ router.post('/upload-images', (req, res) => {
         imageUrls: data.image_urls,
         createdAt: data.created_at,
       });
-    } catch {
-      await removeFiles(files.map((file) => file.path));
-      return res.status(500).json({ error: 'Failed to save image URLs to the database.' });
+    } catch (err) {
+      return res.status(500).json({
+        error: 'Failed to upload images.',
+        details: err?.message || 'Unknown error.',
+      });
     }
   });
 });

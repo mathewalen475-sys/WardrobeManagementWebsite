@@ -2,6 +2,9 @@ import { Router } from 'express';
 import multer from 'multer';
 import Groq from 'groq-sdk';
 
+import { supabaseAdmin } from '../lib/supabase.js';
+import { uploadToSupabaseStorage } from '../lib/storage.js';
+
 const router = Router();
 
 const MAX_IMAGES_PER_CALL = 5;
@@ -169,11 +172,68 @@ function buildFinalAggregationPrompt({ type, totalImages, orderedImages, allBatc
     scoreLines,
     '',
     'Generate one final combined response across all images in the exact order above.',
-    'If mode is "one to one": propose and rank shirt-pant outfit pairings using all images where possible.',
-    'If mode is "one to many": rank shirts/tops and pants/bottoms separately using all images.',
-    'Include a section named ORDERED_IMAGE_BREAKDOWN where each image appears in order with score and rationale.',
-    'Then include the final ranked recommendations according to the requested mode.',
+    '',
+    'CRITICAL REQUIREMENT — Structured outfit pairs:',
+    'You MUST create shirt-and-pant outfit pairings from the images.',
+    'For EVERY pair you propose, output exactly one line in this format:',
+    'OUTFIT_PAIR | rank=<number> | shirt_order=<order number> | shirt_name=<filename or description> | pants_order=<order number> | pants_name=<filename or description> | score=<0-100> | reason=<1-2 sentence explanation>',
+    '',
+    'Rules for pairs:',
+    '- Each pair MUST have one shirt/top and one pants/bottom.',
+    '- Rank pairs from best (rank=1) to worst.',
+    '- Create as many viable pairs as possible from the available items.',
+    '- The score should reflect how well the shirt and pants go together (0=terrible clash, 100=perfect match).',
+    '- Use the order numbers from the image list above for shirt_order and pants_order.',
+    '',
+    'After all OUTFIT_PAIR lines, include a section named ORDERED_IMAGE_BREAKDOWN where each image appears in order with score and rationale.',
+    'Then include a brief STYLE_SUMMARY section with overall wardrobe recommendations.',
   ].join('\n');
+}
+
+function extractOutfitPairs(text) {
+  if (typeof text !== 'string' || text.trim().length === 0) {
+    return [];
+  }
+
+  const pairs = [];
+
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.trim();
+
+    if (!line.includes('OUTFIT_PAIR')) {
+      continue;
+    }
+
+    const rankMatch = line.match(/rank\s*=\s*(\d+)/i);
+    const shirtOrderMatch = line.match(/shirt_order\s*=\s*(\d+)/i);
+    const shirtNameMatch = line.match(/shirt_name\s*=\s*([^|]+)/i);
+    const pantsOrderMatch = line.match(/pants_order\s*=\s*(\d+)/i);
+    const pantsNameMatch = line.match(/pants_name\s*=\s*([^|]+)/i);
+    const scoreMatch = line.match(/score\s*=\s*(\d{1,3})/i);
+    const reasonMatch = line.match(/reason\s*=\s*(.+)$/i);
+
+    if (!shirtOrderMatch || !pantsOrderMatch) {
+      continue;
+    }
+
+    pairs.push({
+      rank: rankMatch ? Number(rankMatch[1]) : pairs.length + 1,
+      shirt: {
+        order: Number(shirtOrderMatch[1]),
+        name: (shirtNameMatch?.[1] || 'Unknown shirt').trim(),
+      },
+      pants: {
+        order: Number(pantsOrderMatch[1]),
+        name: (pantsNameMatch?.[1] || 'Unknown pants').trim(),
+      },
+      score: scoreMatch ? Math.max(0, Math.min(100, Number(scoreMatch[1]))) : null,
+      reason: (reasonMatch?.[1] || 'No reason provided.').trim(),
+    });
+  }
+
+  pairs.sort((a, b) => a.rank - b.rank);
+
+  return pairs;
 }
 
 async function createCompletionWithKeyRotation({ groqKeys, model, messages, temperature }) {
@@ -383,14 +443,76 @@ router.post('/wardrobe/analyze', upload.array('images'), async (req, res) => {
       return res.status(502).json({ error: 'Groq returned an empty final aggregated response.' });
     }
 
+    const pairs = extractOutfitPairs(finalText);
+
+    /* ── Upload images to Supabase Storage ── */
+    const orderToUrl = {};
+    for (const item of orderedFiles) {
+      try {
+        const uploaded = await uploadToSupabaseStorage(
+          item.file.buffer,
+          item.file.originalname || `image-${item.order}.jpg`,
+          item.file.mimetype,
+          'wardrobe',
+        );
+        orderToUrl[item.order] = uploaded.publicUrl;
+      } catch (err) {
+        console.error(`Failed to upload image ${item.order} to storage:`, err.message);
+        orderToUrl[item.order] = null;
+      }
+    }
+
+    /* ── Enrich pairs with Supabase Storage URLs ── */
+    const enrichedPairs = pairs.map((pair) => ({
+      ...pair,
+      shirt: {
+        ...pair.shirt,
+        imageUrl: orderToUrl[pair.shirt.order] || null,
+      },
+      pants: {
+        ...pair.pants,
+        imageUrl: orderToUrl[pair.pants.order] || null,
+      },
+    }));
+
+    /* ── Store pairs in the database ── */
+    const userId = req.user?.id || null;
+    const pairRows = enrichedPairs.map((pair) => ({
+      user_id: userId,
+      rank: pair.rank,
+      shirt_image_url: pair.shirt.imageUrl,
+      shirt_name: pair.shirt.name,
+      pants_image_url: pair.pants.imageUrl,
+      pants_name: pair.pants.name,
+      score: pair.score,
+      reason: pair.reason,
+    }));
+
+    let savedPairs = [];
+    if (pairRows.length > 0) {
+      const { data: insertedPairs, error: insertError } = await supabaseAdmin
+        .from('wardrobe_pairs')
+        .insert(pairRows)
+        .select('id, rank, shirt_image_url, shirt_name, pants_image_url, pants_name, score, reason, created_at');
+
+      if (insertError) {
+        console.error('Failed to save pairs to database:', insertError.message);
+      } else {
+        savedPairs = insertedPairs || [];
+      }
+    }
+
     return res.status(200).json({
       result: finalText,
+      pairs: enrichedPairs,
+      savedPairs,
       type,
       totalImages: orderedFiles.length,
       callsUsed: batchOutputs.length + 1,
       imageOrder: orderedFiles.map((item) => ({
         order: item.order,
         filename: item.name,
+        imageUrl: orderToUrl[item.order] || null,
       })),
       batchResponses: batchOutputs,
     });
