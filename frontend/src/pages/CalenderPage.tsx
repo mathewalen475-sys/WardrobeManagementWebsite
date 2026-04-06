@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import "../styles/Calender.css";
-import Scheduler from "./Scheduler";
+import Uploader from "./Uploader";
 
 type CalendarDay = {
   date: Date;
@@ -147,7 +147,7 @@ function ordinalSuffix(day: number) {
 function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(() => currentMonthStart);
   const [selectedDate, setSelectedDate] = useState(() => now);
-  const [isSchedulerOpen, setIsSchedulerOpen] = useState(false);
+  const [isUploaderOpen, setIsUploaderOpen] = useState(false);
 
   const monthGrid = useMemo(() => buildMonthGrid(currentDate), [currentDate]);
   const currentMonthLabel = currentDate.toLocaleString("default", {
@@ -298,7 +298,7 @@ function CalendarPage() {
               <button
                 type="button"
                 className="confirm-button"
-                onClick={() => setIsSchedulerOpen(true)}
+                onClick={() => setIsUploaderOpen(true)}
               >
                 Change Drip
               </button>
@@ -355,11 +355,9 @@ function CalendarPage() {
         </button>
       </main>
 
-      <Scheduler
-        isOpen={isSchedulerOpen}
-        initialDate={selectedDate}
-        onClose={() => setIsSchedulerOpen(false)}
-        onSchedule={(scheduledDate) => setSelectedDate(scheduledDate)}
+      <Uploader
+        isOpen={isUploaderOpen}
+        onClose={() => setIsUploaderOpen(false)}
       />
     </div>
   );
