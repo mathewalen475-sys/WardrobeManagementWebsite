@@ -19,7 +19,7 @@ const Home: React.FC = () => {
     setMonth(today.toLocaleDateString("en-US", { month: "long" }).toUpperCase());
 
     const fetchData = async () => {
-      const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+      const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
       try {
         // Fetch User
         const userRes = await fetch(`${baseUrl}/api/user/profile`, { credentials: "include" });
