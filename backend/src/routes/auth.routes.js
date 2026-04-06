@@ -10,6 +10,14 @@ function isValidEmail(email) {
   return typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
+function normalizeName(name) {
+  if (typeof name !== 'string') {
+    return '';
+  }
+
+  return name.trim();
+}
+
 function isValidRegistrationInput(username, password, name) {
   return (
     isValidEmail(username) &&
@@ -47,7 +55,7 @@ router.post('/register', async (req, res) => {
   }
 
   const email = username.trim().toLowerCase();
-  const trimmedName = name.trim();
+  const trimmedName = normalizeName(name);
 
   try {
     const { data: createData, error: createError } = await supabaseAdmin.auth.admin.createUser({
