@@ -5,7 +5,7 @@ import aboutImg from "../assets/hero.webp"; // replace with your image if differ
 
 const AboutSection: React.FC = () => {
   return (
-    <section className="about-container">
+    <section id="about" className="about-container">
 
       {/* ABOUT WADRO */}
 

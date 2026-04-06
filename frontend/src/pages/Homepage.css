@@ -1,0 +1,181 @@
+/* Layout Overhauls */
+.homepage-container { display: flex; background-color: #FDF9F5; }
+
+.main-content {
+  margin-left: 256px;
+  padding: 3rem;
+  width: calc(100% - 256px);
+  box-sizing: border-box;
+  position: relative;
+}
+
+.header-top-right {
+  position: absolute;
+  top: 2rem;
+  right: 3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-icon {
+  height: 45px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header-artboard {
+  height: 90px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header {
+  margin-top: 1rem;
+  max-width: 760px;
+}
+
+.welcome-text {
+  margin: 0;
+  font-size: clamp(1.65rem, 3.3vw, 2.65rem);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  background: linear-gradient(110deg, #2a1408 0%, #6d3a1f 45%, #9f5530 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-wrap: balance;
+}
+
+.date-text {
+  margin: 0.45rem 0 0;
+  font-size: clamp(1rem, 1.75vw, 1.4rem);
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7f6554;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+/* Calendar Styles */
+.calendar-container-wrapper { display: flex; flex-direction: column; gap: 2rem; }
+
+.calendar-widget {
+  background-color: #f1ede9;
+  padding: 2.5rem;
+  border-radius: 2.5rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.calendar-title { font-family: serif; font-size: 1.5rem; color: #432412; margin: 0; }
+.calendar-month { font-size: 0.75rem; font-weight: bold; color: #a39489; letter-spacing: 1px; }
+
+.calendar-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; }
+
+.calendar-col { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+
+.day-label { font-size: 0.65rem; color: #8b7e74; font-weight: bold; }
+
+.day-number {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: serif;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.day-number:hover { background-color: white; }
+.day-number.active { background-color: #432412; color: white; }
+
+.schedule-dot { width: 4px; height: 4px; background-color: #432412; border-radius: 50%; }
+
+/* Action Card */
+.action-card {
+  background-color: #FFDBCA;
+  padding: 2rem;
+  border-radius: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.action-card:hover { transform: translateY(-5px); }
+.action-content h4 { font-family: serif; color: #432412; margin: 0 0 0.5rem 0; }
+.action-content p { font-size: 0.9rem; color: #623E2A; margin: 0; max-width: 80%; }
+.action-btn { background: #432412; color: white; border: none; padding: 1rem; border-radius: 50%; cursor: pointer; display: flex; }
+
+/* Weather & Visuals */
+.weather-card {
+  background-color: #ebe7e4;
+  padding: 2.5rem;
+  text-align: center;
+  border-radius: 2.5rem;
+}
+
+.weather-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.weather-visual .material-symbols-outlined { font-size: 4rem; color: #432412; }
+
+.weather-temp { font-family: serif; font-size: 2.5rem; color: #432412; }
+
+.suggestion-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #50443E;
+  font-style: italic;
+}
+
+/* Animations */
+@keyframes sun-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.weather-animate-sun { animation: sun-spin 10s linear infinite; color: #ff9800 !important; }
+
+@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+.weather-animate-cloud { animation: float 4s ease-in-out infinite; }
+
+/* Outfit Image Card */
+.outfit-display-card {
+  margin-top: 2rem;
+  position: relative;
+  border-radius: 2.5rem;
+  overflow: hidden;
+  height: 300px;
+}
+
+.dynamic-outfit-img { width: 100%; height: 100%; object-fit: cover; }
+
+.img-overlay {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 1.5rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.6));
+  color: white;
+  font-weight: bold;
+}
