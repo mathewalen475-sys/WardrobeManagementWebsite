@@ -1,8 +1,10 @@
-/* PAGE BACKGROUND */
+/* FULL PAGE BACKGROUND (CREAM AREA FULL WIDTH) */
 
 .landing-container {
 
   background: #f4f1ee;
+
+  width: 100%;
 
   min-height: 100vh;
 
@@ -16,9 +18,11 @@
 
   position: relative;
 
-  width: 92%;
+  width: 100%;
 
-  margin: 40px auto;
+  padding: 40px 60px;
+
+  box-sizing: border-box;
 
 }
 
@@ -34,13 +38,13 @@
 
   object-fit: cover;
 
-  border-radius: 22px;
+  border-radius: 24px;
 
 }
 
 
 
-/* LIGHT OVERLAY (NOT DARK) */
+/* LIGHT OVERLAY */
 
 .hero-container::after {
 
@@ -48,11 +52,11 @@
 
   position: absolute;
 
-  inset: 0;
+  inset: 40px 60px;
 
   background: rgba(0,0,0,0.18);
 
-  border-radius: 22px;
+  border-radius: 24px;
 
 }
 
@@ -74,7 +78,7 @@
 
   color: white;
 
-  width: 80%;
+  width: 70%;
 
   z-index: 2;
 
