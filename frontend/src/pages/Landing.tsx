@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection"; // NEW IMPORT
+import { useNavigate } from "react-router-dom";
 
 import "./Landing.css";
 
@@ -8,6 +9,8 @@ import "./Landing.css";
 import heroImg from "../assets/wardrobe.webp";
 
 const Landing: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="landing-container">
 
@@ -37,7 +40,7 @@ const Landing: React.FC = () => {
             choose the perfect outfit every day
           </p>
 
-          <button className="get-started-btn">
+          <button className="get-started-btn" onClick={() => navigate("/signup")}>
             Get Started →
           </button>
 
