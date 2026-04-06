@@ -33,6 +33,40 @@
 
 }
 
+.back-button {
+
+  align-self: flex-start;
+
+  display: block;
+
+  width: fit-content;
+
+  margin-bottom: 20px;
+
+  margin-right: auto;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #6a3b24;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+}
+
+.back-button:hover {
+
+  text-decoration: underline;
+
+}
+
 
 /* LOGO */
 

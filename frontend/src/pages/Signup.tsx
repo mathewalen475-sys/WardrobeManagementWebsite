@@ -51,6 +51,14 @@ const Signup: React.FC = () => {
 
       <form className="signup-card" onSubmit={handleSubmit}>
 
+        <button
+          type="button"
+          className="back-button"
+          onClick={() => navigate("/")}
+        >
+          ← Back
+        </button>
+
         <h1 className="signup-logo">
           Wadro
         </h1>

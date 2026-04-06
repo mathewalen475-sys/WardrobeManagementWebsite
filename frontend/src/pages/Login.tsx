@@ -58,6 +58,14 @@ const Login: React.FC = () => {
 
       <form className="login-card" onSubmit={handleSubmit}>
 
+        <button
+          type="button"
+          className="back-button"
+          onClick={() => navigate("/")}
+        >
+          ← Back
+        </button>
+
         <img
           src={logo}
           alt="Wadro logo"
