@@ -25,7 +25,7 @@ const Home: React.FC = () => {
         const userRes = await fetch(`${baseUrl}/api/user/profile`, { credentials: "include" });
         if (userRes.ok) {
           const data = await userRes.json();
-          setUserName(data?.username ?? data?.name ?? "User");
+          setUserName(data?.name ?? "User");
         }
         
         // Fetch Scheduled Dresses (names/types, not images)
@@ -77,7 +77,7 @@ const Home: React.FC = () => {
           <img src={artboardImg} alt="Website Group" className="header-artboard" />
         </div>
         <header className="header">
-          <p className="welcome-text">Welcome back, {userName}</p>
+          <p className="welcome-text">Welcome {userName},</p>
           <h2 className="date-text">{date}</h2>
         </header>
 

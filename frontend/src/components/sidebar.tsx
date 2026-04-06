@@ -5,23 +5,32 @@ import { logoutUser } from "../services/auth";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("Loading...");
-  const [userStatus] = useState("Member");
+  const [userName, setUserName] = useState("User");
+  const userStatus = "User";
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
   useEffect(() => {
-    // Backend fetch logic
     const fetchUser = async () => {
       try {
-        // const response = await fetch("YOUR_BACKEND_URL/profile");
-        // const data = await response.json();
-        setUserName("Akhil Nair"); 
+        const response = await fetch(`${baseUrl}/api/user/profile`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setUserName(data?.name ?? "User");
 
       } catch (err) {
         setUserName("User");
       }
     };
+
     fetchUser();
-  }, []);
+  }, [baseUrl]);
 
   return (
     <aside className="sidebar">
@@ -55,7 +64,9 @@ const Sidebar: React.FC = () => {
         {/* Profile Section */}
         <div className="profile-section">
           <div className="profile-avatar">
-            <img src="https://via.placeholder.com/100" alt="User" />
+            <span className="material-symbols-outlined profile-avatar-icon" aria-hidden="true">
+              person
+            </span>
           </div>
           <div className="profile-info">
             <span className="profile-name">{userName}</span>
