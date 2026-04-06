@@ -10,6 +10,14 @@ function normalizeUsername(username) {
   return username.trim().toLowerCase();
 }
 
+function normalizeName(name) {
+  if (typeof name !== 'string') {
+    return '';
+  }
+
+  return name.trim();
+}
+
 function isValidCredentialInput(username, password) {
   return typeof username === 'string' && typeof password === 'string' && username.trim().length > 0 && password.length > 0;
 }
@@ -35,13 +43,14 @@ function setAuthCookie(res, token) {
 }
 
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body ?? {};
+  const { username, password, name } = req.body ?? {};
 
   if (!isValidCredentialInput(username, password)) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
   const normalizedUsername = normalizeUsername(username);
+  const normalizedName = normalizeName(name);
   const syntheticEmail = `${normalizedUsername}@local.invalid`;
 
   const { error } = await supabaseAdmin.auth.admin.createUser({
@@ -50,6 +59,7 @@ router.post('/register', async (req, res) => {
     email_confirm: true,
     user_metadata: {
       username: normalizedUsername,
+      name: normalizedName,
     },
   });
 

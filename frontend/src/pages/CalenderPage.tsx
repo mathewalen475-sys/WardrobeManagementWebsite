@@ -16,14 +16,6 @@ type EventDetails = {
   outfit: Array<{ label: string; value: string }>;
 };
 
-type SpotlightCard = {
-  label: string;
-  icon: string;
-  title: string;
-  subtitle: string;
-  image: string;
-};
-
 const now = new Date();
 const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -59,25 +51,6 @@ const selectedEvents: Record<string, EventDetails> = {
     ],
   },
 };
-
-const spotlightCards: SpotlightCard[] = [
-  {
-    label: "MORNING",
-    icon: "light_mode",
-    title: "Structured Navy Blazer",
-    subtitle: "Business Meeting @ 09:00",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDb68WJu8jHuQlisnXGYLkuEUFKwjy82ULB2CLv5rZoKrETws6VyVQmmBk9HQ3VLPp3kM9wxefAnPpeCfSmJUuVWi5oXw8jhaRqEdnXEUNC2kJB2B2PTvxVsMKistl-zbTuYKr8Ioh2rg6GFkA_YlDK8dOFX6vZeCWDx8jxQiDGCowJdONhfijdFNO5lOPQiAJqzbhhqYP-sZJDwVZzOSYsBW9rZ8_Ll2Z6PHjXsBfpoG7lTkR9E-ASlstNymvJQtKRCVuGT79zLLCi",
-  },
-  {
-    label: "EVENING",
-    icon: "dark_mode",
-    title: "Stiletto Heels",
-    subtitle: "Dinner with Friends @ 20:30",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuAwdJf-N1Z5ZIugBuClt3YvXk2PGKpfVGy9ZxK_g3cWhSOYPFwpSrgVNWIB9cW-ORgv198FvjymtMcA3Ilp3tALrvqn02xvBzsCFEwGNYCWMUJHwMYOXjAu-T9yn3_PwiCTXqfQNL2eSBe7dqPwu8puhgxexCqWKaq5DUUlTJ10NzOy87hvH1V-67X97wnE4DKPhjtW5E8drMYO98NY7gHiyjnnA-Hdk3Zrkwa42mAna1mdQos_L6Z0Z_mjxUJdT01HlD06-5MdPvWU",
-  },
-];
 
 function formatDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(

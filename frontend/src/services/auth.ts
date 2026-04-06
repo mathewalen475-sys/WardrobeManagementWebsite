@@ -9,6 +9,10 @@ type AuthPayload = {
   password: string;
 };
 
+type RegisterPayload = AuthPayload & {
+  name?: string;
+};
+
 async function handleJsonResponse(response: Response) {
   const data = await response.json().catch(() => ({}));
 
@@ -22,6 +26,21 @@ async function handleJsonResponse(response: Response) {
 
 export async function loginUser(payload: AuthPayload) {
   const response = await fetch(`${getBaseUrl()}/api/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+
+  const data = await handleJsonResponse(response);
+  localStorage.setItem(AUTH_FLAG_KEY, "true");
+  return data;
+}
+
+export async function registerUser(payload: RegisterPayload) {
+  const response = await fetch(`${getBaseUrl()}/api/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

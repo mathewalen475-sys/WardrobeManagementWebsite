@@ -107,6 +107,18 @@
 
 }
 
+.auth-error {
+
+  margin: 8px 0 0;
+
+  text-align: left;
+
+  color: #b42318;
+
+  font-size: 14px;
+
+}
+
 
 /* BUTTON */
 
