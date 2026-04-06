@@ -7,6 +7,7 @@ import authRouter from './routes/auth.routes.js';
 import wardrobeRouter from './routes/wardrobe.routes.js';
 import uploadRouter from './routes/upload.routes.js';
 import clothesRouter from './routes/clothes.routes.js';
+import userRouter from './routes/user.routes.js';
 import { requireAuth } from './middleware/auth.middleware.js';
 
 dotenv.config();
@@ -51,5 +52,6 @@ app.post('/api/logout', (_req, res) => {
 
 app.use('/api', requireAuth, wardrobeRouter);
 app.use('/api', requireAuth, clothesRouter);
+app.use('/api', requireAuth, userRouter);
 
 export default app;
