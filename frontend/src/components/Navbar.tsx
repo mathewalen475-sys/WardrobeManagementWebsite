@@ -72,7 +72,7 @@ const Navbar: React.FC = () => {
             className="signup-btn"
             onClick={() => navigate("/signup")}
           >
-            Sign up
+            Signup
           </button>
 
         </div>

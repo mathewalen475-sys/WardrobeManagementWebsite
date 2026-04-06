@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./sidebar.css";
+import { logoutUser } from "../services/auth";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -63,7 +64,13 @@ const Sidebar: React.FC = () => {
         </div>
 
         {/* Logout Option */}
-        <button className="logout-btn" onClick={() => navigate("/login") }>
+        <button
+          className="logout-btn"
+          onClick={() => {
+            logoutUser();
+            navigate("/login");
+          }}
+        >
           <span className="material-symbols-outlined">logout</span>
           <span className="nav-text">Logout</span>
         </button>
