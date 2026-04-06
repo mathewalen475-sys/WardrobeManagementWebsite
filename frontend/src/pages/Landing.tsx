@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection"; // NEW IMPORT
 import { useNavigate } from "react-router-dom";
 
-import "./Landing.css";
+import "../styles/Landing.css";
 
 /* IMPORT HERO IMAGE */
 import heroImg from "../assets/wardrobe.webp";

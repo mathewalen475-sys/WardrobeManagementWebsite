@@ -1,5 +1,5 @@
 import React from "react";
-import "./Login.css";
+import "../styles/Login.css";
 
 import logo from "../assets/logo.webp";
 

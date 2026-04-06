@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar";
 import artboardImg from "../assets/logo.webp";
 import { useNavigate } from "react-router-dom";
-import "./Homepage.css";
+import "../styles/Homepage.css";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
