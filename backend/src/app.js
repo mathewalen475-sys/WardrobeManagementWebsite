@@ -2,11 +2,11 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import path from 'path';
 
 import authRouter from './routes/auth.routes.js';
 import wardrobeRouter from './routes/wardrobe.routes.js';
 import uploadRouter from './routes/upload.routes.js';
+import clothesRouter from './routes/clothes.routes.js';
 import { requireAuth } from './middleware/auth.middleware.js';
 
 dotenv.config();
@@ -24,7 +24,6 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
-app.use('/uploads', express.static(path.resolve(process.cwd(), 'public', 'uploads')));
 
 /* ── Health check ────────────────────────────────────── */
 
@@ -51,5 +50,6 @@ app.post('/api/logout', (_req, res) => {
 /* ── Protected routes (require login) ────────────────── */
 
 app.use('/api', requireAuth, wardrobeRouter);
+app.use('/api', requireAuth, clothesRouter);
 
 export default app;

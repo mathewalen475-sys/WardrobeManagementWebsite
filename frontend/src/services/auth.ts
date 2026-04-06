@@ -1,7 +1,7 @@
 export const AUTH_FLAG_KEY = "wadro_authenticated";
 
 function getBaseUrl() {
-  return import.meta.env.VITE_API_BASE_URL ?? "";
+  return import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 }
 
 type AuthPayload = {
@@ -58,6 +58,15 @@ export function isAuthenticated() {
   return localStorage.getItem(AUTH_FLAG_KEY) === "true";
 }
 
-export function logoutUser() {
-  localStorage.removeItem(AUTH_FLAG_KEY);
+export async function logoutUser() {
+  try {
+    const response = await fetch(`${getBaseUrl()}/api/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    await handleJsonResponse(response);
+  } finally {
+    localStorage.removeItem(AUTH_FLAG_KEY);
+  }
 }

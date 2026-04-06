@@ -66,8 +66,8 @@ const Sidebar: React.FC = () => {
         {/* Logout Option */}
         <button
           className="logout-btn"
-          onClick={() => {
-            logoutUser();
+          onClick={async () => {
+            await logoutUser();
             navigate("/login");
           }}
         >
