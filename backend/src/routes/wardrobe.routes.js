@@ -41,6 +41,33 @@ Justification: [1-2 sentences explaining why...]
 Justification: [1-2 sentences explaining why...]
 [Continue for all items]`;
 
+function getGroqApiKeys() {
+  const keys = [];
+
+  if (typeof process.env.GROQ_API_KEYS === 'string' && process.env.GROQ_API_KEYS.trim().length > 0) {
+    keys.push(...process.env.GROQ_API_KEYS.split(',').map((value) => value.trim()).filter(Boolean));
+  }
+
+  if (typeof process.env.GROQ_API_KEY === 'string' && process.env.GROQ_API_KEY.trim().length > 0) {
+    keys.push(process.env.GROQ_API_KEY.trim());
+  }
+
+  return [...new Set(keys)];
+}
+
+function isGroqLimitError(error) {
+  const status = error?.status || error?.response?.status || error?.code;
+  const message = String(error?.message || '').toLowerCase();
+
+  return (
+    status === 429 ||
+    message.includes('rate limit') ||
+    message.includes('too many requests') ||
+    message.includes('quota') ||
+    message.includes('exceeded')
+  );
+}
+
 function resolvePrompt(type) {
   if (type === 'one to one') {
     return PROMPT_A;
@@ -100,11 +127,10 @@ router.post('/wardrobe/analyze', upload.array('images'), async (req, res) => {
       return res.status(400).json({ error: 'Only image files are allowed in the images field.' });
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: 'Missing GROQ_API_KEY environment configuration.' });
+    const groqKeys = getGroqApiKeys();
+    if (groqKeys.length === 0) {
+      return res.status(500).json({ error: 'Missing GROQ_API_KEY or GROQ_API_KEYS environment configuration.' });
     }
-
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     const imageParts = files.map((file) => ({
       type: 'image_url',
@@ -127,11 +153,33 @@ router.post('/wardrobe/analyze', upload.array('images'), async (req, res) => {
       },
     ];
 
-    const completion = await groq.chat.completions.create({
-      model: process.env.GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview',
-      messages,
-      temperature: 0.4,
-    });
+    let completion = null;
+    let lastError = null;
+
+    for (const apiKey of groqKeys) {
+      const groq = new Groq({ apiKey });
+
+      try {
+        completion = await groq.chat.completions.create({
+          model: process.env.GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview',
+          messages,
+          temperature: 0.4,
+        });
+        break;
+      } catch (error) {
+        lastError = error;
+
+        if (!isGroqLimitError(error)) {
+          throw error;
+        }
+      }
+    }
+
+    if (!completion) {
+      const exhaustedMessage = 'All configured Groq API keys are currently rate-limited or quota-exhausted.';
+      const fallbackMessage = lastError?.message || exhaustedMessage;
+      return res.status(429).json({ error: exhaustedMessage, details: fallbackMessage });
+    }
 
     const text = extractAssistantText(completion);
     if (!text) {
