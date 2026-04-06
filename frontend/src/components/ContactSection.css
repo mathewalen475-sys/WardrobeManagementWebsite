@@ -1,0 +1,127 @@
+.contact-section {
+
+background: #f4f1ee;
+padding: 120px 0;
+display: flex;
+justify-content: center;
+
+}
+
+.contact-card {
+
+width: 85%;
+max-width: 1100px;
+background: white;
+border-radius: 20px;
+padding: 60px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.05);
+
+}
+
+.contact-header {
+
+margin-bottom: 40px;
+text-align: center;
+
+}
+
+.contact-eyebrow {
+
+display: inline-block;
+margin-bottom: 12px;
+font-size: 13px;
+letter-spacing: 3px;
+text-transform: uppercase;
+color: #6a3b24;
+font-weight: 700;
+
+}
+
+.contact-header h2 {
+
+margin: 0 0 12px;
+font-size: 38px;
+color: #432412;
+
+}
+
+.contact-header p {
+
+margin: 0;
+font-size: 17px;
+line-height: 1.6;
+color: #6f625a;
+
+}
+
+.contact-form {
+
+width: 100%;
+
+}
+
+.row {
+
+display: flex;
+gap: 40px;
+margin-bottom: 30px;
+
+}
+
+.input-group {
+
+display: flex;
+flex-direction: column;
+width: 100%;
+margin-bottom: 30px;
+
+}
+
+.input-group label {
+
+font-size: 14px;
+letter-spacing: 2px;
+color: #7a7a7a;
+margin-bottom: 10px;
+
+}
+
+.input-group input,
+.input-group select,
+.input-group textarea {
+
+border: 1px solid #cbb8aa;
+background: #faf9f8;
+padding: 14px;
+border-radius: 6px;
+font-size: 18px;
+
+}
+
+.input-group textarea {
+
+height: 180px;
+resize: none;
+
+}
+
+.contact-btn {
+
+margin-top: 20px;
+padding: 18px 45px;
+background: linear-gradient(135deg,#6a3b24,#4d2b1b);
+color: white;
+border: none;
+border-radius: 14px;
+font-size: 18px;
+letter-spacing: 2px;
+cursor: pointer;
+transition: 0.3s ease;
+
+}
+
+.contact-btn:hover {
+
+transform: translateY(-2px);
+
+}

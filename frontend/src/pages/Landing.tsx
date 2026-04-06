@@ -1,6 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar";
 import AboutSection from "../components/AboutSection"; // NEW IMPORT
+import ContactSection from "../components/ContactSection";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/Landing.css";
@@ -53,6 +54,12 @@ const Landing: React.FC = () => {
       {/* ABOUT SECTION (appears when scrolling down) */}
 
       <AboutSection />
+
+
+
+      {/* CONTACT SECTION */}
+
+      <ContactSection />
 
 
     </div>
