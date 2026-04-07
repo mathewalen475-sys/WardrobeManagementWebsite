@@ -186,6 +186,12 @@
 	color: #432412;
 }
 
+.scheduler-error {
+	margin: 0.7rem 0 0;
+	font-size: 0.82rem;
+	color: #a23e3e;
+}
+
 @media (max-width: 560px) {
 	.scheduler-header,
 	.scheduler-images,

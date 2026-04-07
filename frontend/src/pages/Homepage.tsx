@@ -165,7 +165,12 @@ const Home: React.FC = () => {
               <div className="calendar-days-grid">
                 {["M", "T", "W", "T", "F", "S", "S"].map((label, i) => {
                   const dayNum = 24 + i;
-                  const isScheduled = scheduledDresses.some(d => d.day === dayNum);
+                  const isScheduled = scheduledDresses.some((d) => {
+                    const dateText = typeof d?.scheduled_date === "string" ? d.scheduled_date : "";
+                    if (!dateText) return false;
+                    const parsed = new Date(`${dateText}T00:00:00`);
+                    return !Number.isNaN(parsed.getTime()) && parsed.getDate() === dayNum;
+                  });
                   return (
                     <div key={i} className="calendar-col">
                       <span className="day-label">{label}</span>

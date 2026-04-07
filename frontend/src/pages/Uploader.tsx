@@ -25,6 +25,8 @@ type ClassificationResponse = {
 const coverImage =
 	"https://lh3.googleusercontent.com/aida-public/AB6AXuCAaG3Tk0KEuwyn0F_s1pNvsNYpeuWqjtITbRhdTS3Ob0fHy8DnoW0RNooHXnMe0sTUPMRKMlS4T41VNxZr8k9Jxkg0xQxb9LbijIpMCmxkT7RLriEQlqdj48BEIeETIpbmeikSf7wo4ZCTEUTAPyhNPuwHJQ2cbF95A0nXZY77Ly4USHn3FzoZE_wgTRf_EK_oqKleYTXsj9iWxncajsqA3NLwBL-QX2S0KvapNGsGHvYVVebi7Z-ubuKvC9hoGzGGk53QInAN-is";
 
+const MAX_UPLOAD_FILES = 10;
+
 function Uploader({ isOpen, onClose, onUpload, redirectToGradingOnSuccess = false }: UploaderProps) {
 	const navigate = useNavigate();
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -41,7 +43,16 @@ function Uploader({ isOpen, onClose, onUpload, redirectToGradingOnSuccess = fals
 		}
 
 		const files = Array.from(incoming);
-		setSelectedFiles((previous) => [...previous, ...files]);
+		setSelectedFiles((previous) => {
+			const merged = [...previous, ...files];
+			if (merged.length > MAX_UPLOAD_FILES) {
+				setUploadError(`You can upload up to ${MAX_UPLOAD_FILES} files at once. The extra files were ignored.`);
+				return merged.slice(0, MAX_UPLOAD_FILES);
+			}
+
+			setUploadError("");
+			return merged;
+		});
 	};
 
 	if (!isOpen) {
@@ -175,7 +186,7 @@ function Uploader({ isOpen, onClose, onUpload, redirectToGradingOnSuccess = fals
 
 							<div className="uploader-drop-text">
 								<h3>Upload Files</h3>
-								<p>Drag and drop or click to browse</p>
+								<p>Drag and drop or click to browse (max {MAX_UPLOAD_FILES} files)</p>
 								<span>Express Upload</span>
 							</div>
 

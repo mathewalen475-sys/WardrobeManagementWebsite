@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "../components/sidebar";
+import Scheduler from "./Scheduler";
 import "../styles/Grading.css";
 
 type ClassifiedImage = {
@@ -47,6 +48,12 @@ type GradeSelectionResponse = {
   result?: GradedPair;
   rankings?: GradedPair[];
   error?: string;
+};
+
+type SelectedOutfitPayload = {
+  id: string;
+  shirt_image_url: string | null;
+  pants_image_url: string | null;
 };
 
 type RankingCard = {
@@ -98,6 +105,9 @@ function Grading() {
   const [activeRankingId, setActiveRankingId] = useState("");
   const [resultModal, setResultModal] = useState<GradedPair | null>(null);
   const [selectedOutfitId, setSelectedOutfitId] = useState("");
+  const [selectedOutfitImages, setSelectedOutfitImages] = useState<{ top: string; bottom: string } | null>(null);
+  const [isSchedulerOpen, setIsSchedulerOpen] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     setIsLoading(true);
@@ -286,6 +296,74 @@ function Grading() {
     }
   };
 
+  const handleSelectOutfit = async (pair: GradedPair) => {
+    setSaveError("");
+
+    try {
+      const response = await fetch(`${getBaseUrl()}/api/upload-selected-outfit`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          top: pair.top,
+          bottom: pair.bottom,
+          score: pair.score,
+          reason: pair.reason,
+          rank: pair.rank,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        selectedOutfit?: SelectedOutfitPayload;
+      };
+
+      if (!response.ok || !payload.selectedOutfit?.id) {
+        throw new Error(payload.error || "Failed to save selected outfit.");
+      }
+
+      setSelectedOutfitId(payload.selectedOutfit.id);
+      setSelectedOutfitImages({
+        top: toAbsoluteImageUrl(payload.selectedOutfit.shirt_image_url || pair.top.imageUrl),
+        bottom: toAbsoluteImageUrl(payload.selectedOutfit.pants_image_url || pair.bottom.imageUrl),
+      });
+      setResultModal(null);
+      setIsSchedulerOpen(true);
+    } catch (requestError) {
+      const message = requestError instanceof Error ? requestError.message : "Failed to save selected outfit.";
+      setSaveError(message);
+    }
+  };
+
+  const handleScheduleOutfit = async (scheduledDate: Date) => {
+    if (!selectedOutfitId) {
+      return;
+    }
+
+    const dateString = `${scheduledDate.getFullYear()}-${String(scheduledDate.getMonth() + 1).padStart(2, "0")}-${String(
+      scheduledDate.getDate(),
+    ).padStart(2, "0")}`;
+
+    const response = await fetch(`${getBaseUrl()}/api/clothes/schedule`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        selectedOutfitId,
+        scheduledDate: dateString,
+      }),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error || "Failed to schedule outfit.");
+    }
+  };
+
   return (
     <div className="grading-page">
       <Sidebar />
@@ -330,6 +408,7 @@ function Grading() {
             {isLoading ? <p>Loading your uploaded wardrobe...</p> : null}
             {error ? <p>{error}</p> : null}
             {gradingError ? <p>{gradingError}</p> : null}
+            {saveError ? <p>{saveError}</p> : null}
 
             {!isLoading && !error && tops.length === 0 && bottoms.length === 0 ? (
               <p>No shirts/pants available from classification. Upload and classify again.</p>
@@ -494,10 +573,7 @@ function Grading() {
             <button
               type="button"
               className="grading-modal-select"
-              onClick={() => {
-                setSelectedOutfitId(resultModal.id);
-                setResultModal(null);
-              }}
+              onClick={() => handleSelectOutfit(resultModal)}
             >
               Select This Outfit
             </button>
@@ -506,6 +582,14 @@ function Grading() {
       ) : null}
 
       {selectedOutfitId ? <div className="grading-selected-tag">Selected outfit: {selectedOutfitId}</div> : null}
+
+      <Scheduler
+        isOpen={isSchedulerOpen}
+        onClose={() => setIsSchedulerOpen(false)}
+        topImage={selectedOutfitImages?.top}
+        bottomImage={selectedOutfitImages?.bottom}
+        onSchedule={handleScheduleOutfit}
+      />
     </div>
   );
 }

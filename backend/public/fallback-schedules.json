@@ -1,0 +1,17 @@
+[
+  {
+    "id": "d8844040-f1c3-4504-b286-5a2d0abf9a09-2026-04-07",
+    "user_id": "d8844040-f1c3-4504-b286-5a2d0abf9a09",
+    "scheduled_date": "2026-04-07",
+    "selected_outfit_id": "c8934d02-c32e-4e1b-bcf3-d750bcda1b35",
+    "shirt_image_url": "http://localhost:3000/uploads/1775524370373-o7msr6-WhatsApp-Image-2026-04-07-at-4-41-51-AM--1-.jpeg",
+    "shirt_name": "blue t-shirt",
+    "shirt_color": "unknown",
+    "shirt_color_hex": "#8a8a8a",
+    "pants_image_url": "http://localhost:3000/uploads/1775524370372-hfezjh-WhatsApp-Image-2026-04-07-at-4-41-52-AM.jpeg",
+    "pants_name": "black pants",
+    "score": 60,
+    "reason": "The blue t-shirt and black pants create a classic and simple combination with moderate color harmony and contrast, but lack visual interest and versatility. The outfit's visual cohesion is good due to the solid colors.",
+    "created_at": "2026-04-07T01:19:48.011Z"
+  }
+]

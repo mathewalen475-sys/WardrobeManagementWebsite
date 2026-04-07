@@ -613,9 +613,12 @@ router.post('/wardrobe/grade-selection', async (req, res) => {
           type: 'text',
           text: [
             'You are an expert fashion grader.',
-            'Grade this single outfit pair (one top + one bottom).',
+            'Grade this single outfit pair (one top + one bottom) with strict consistency.',
+            'Use this rubric: color harmony (40), contrast/balance (25), versatility (20), visual cohesion (15).',
+            'Scores must be integers and deterministic for the same inputs.',
             'Return exactly one line in this strict format:',
             'GRADE_RESULT | score=<0-100> | reason=<1-2 concise sentences>',
+            'No extra lines or commentary.',
           ].join('\n'),
         },
         ...toImageContentParts([top], 'Top image:'),
@@ -626,7 +629,7 @@ router.post('/wardrobe/grade-selection', async (req, res) => {
         groqKeys,
         model,
         messages: [{ role: 'user', content }],
-        temperature: 0.2,
+        temperature: 0,
       });
 
       const text = extractAssistantText(completion);
@@ -668,13 +671,16 @@ router.post('/wardrobe/grade-selection', async (req, res) => {
         type: 'text',
         text: [
           'You are an expert fashion grader.',
-          'Rank outfit combinations from best to worst.',
+          'Rank outfit combinations from best to worst with strict consistency.',
+          'Use this rubric: color harmony (40), contrast/balance (25), versatility (20), visual cohesion (15).',
+          'Break ties by stronger color harmony, then by versatility.',
           'Candidate pairs:',
           pairsText,
           '',
           'Return ONLY lines in this strict format:',
           'PAIR_RANK | rank=<1..N> | pair_id=<pair id> | score=<0-100> | reason=<1 short sentence>',
           'Include all candidate pairs exactly once.',
+          'No extra text.',
         ].join('\n'),
       },
       ...toImageContentParts(tops, 'Top images:'),
@@ -685,7 +691,7 @@ router.post('/wardrobe/grade-selection', async (req, res) => {
       groqKeys,
       model,
       messages: [{ role: 'user', content }],
-      temperature: 0.25,
+      temperature: 0,
     });
 
     const text = extractAssistantText(completion);
