@@ -177,7 +177,6 @@ const Home: React.FC = () => {
               </div>
             </div>
 
-<<<<<<< HEAD
             {/* Upload Action Card */}
             <div className="action-card" onClick={() => navigate("/uploader")}>
               <div className="action-content">
