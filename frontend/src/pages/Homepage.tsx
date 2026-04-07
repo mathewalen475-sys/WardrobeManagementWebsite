@@ -204,8 +204,17 @@ const Home: React.FC = () => {
 
     const fetchWeather = async () => {
       try {
+        const weatherApiKey = import.meta.env.VITE_WEATHER_API_KEY;
+        const weatherCity = import.meta.env.VITE_WEATHER_CITY ?? "Kottayam";
+
+        if (!weatherApiKey) {
+          console.error("Weather API key not configured in environment variables");
+          setSuggestion("Weather data unavailable. Layer your outfits for comfort and style!");
+          return;
+        }
+
         const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Kottayam&units=metric&appid=29c2a11f21b2372fe5eb4aca0a93bfd8`
+          `https://api.openweathermap.org/data/2.5/weather?q=${weatherCity}&units=metric&appid=${weatherApiKey}`
         );
 
         if (!response.ok) {
@@ -224,18 +233,56 @@ const Home: React.FC = () => {
 
         setWeather(data);
         const temp = data.main.temp;
+        const humidity = data.main.humidity || 0;
         const condition = data.weather[0]?.main;
+        const description = data.weather[0]?.description || "";
 
-        if (temp >= 30 || condition === "Clear") {
+        // Temperature-based suggestions
+        if (temp >= 29) {
           setSuggestion("It's quite warm today! We recommend opting for breathable cotton fabrics and light colors to stay cool and catch the breeze.");
-        } else if (condition === "Rain") {
+        }
+        // Sunny/Clear weather
+        else if (condition === "Clear" || condition === "Sunny") {
+          setSuggestion("Beautiful sunny weather! Wear breathable fabrics and don't forget sunscreen-friendly light colors. Sunglasses are a great accessory today!");
+        }
+        // Rainy conditions
+        else if (condition === "Rain" || condition === "Drizzle" || description.includes("rain")) {
           setSuggestion("It looks like rain is on the way. You might want to choose quick-dry fabrics and avoid heavy layers to stay comfortable throughout the day.");
-        } else if (condition === "Clouds") {
-          setSuggestion("It's a bit cloudy today. A light jacket or layered outfit would be perfect for this weather.");
-        } else if (temp < 15) {
-          setSuggestion("It's quite chilly! Consider wearing warm layers and insulated fabrics to stay cozy.");
-        } else {
-          setSuggestion("The weather is a bit brisk. Try wearing layered outfits; it might be the best way to adapt to the shifting temperatures today.");
+        }
+        // Damp/Humid conditions
+        else if (humidity >= 75) {
+          setSuggestion("It's quite humid and damp today. Choose lightweight, breathable fabrics like linen and cotton to stay comfortable. Avoid heavy or synthetic materials that trap moisture.");
+        }
+        // Cloudy conditions
+        else if (condition === "Clouds" || condition === "Overcast") {
+          setSuggestion("It's a bit cloudy today. A light jacket or layered outfit would be perfect for this weather. Consider fabrics that provide gentle warmth without overheating.");
+        }
+        // Foggy/Misty conditions
+        else if (condition === "Mist" || condition === "Fog" || description.includes("mist") || description.includes("fog")) {
+          setSuggestion("It's foggy and misty outside. Layer up with a light jacket and wear darker colors for better visibility. Consider semi-fitted outfits for comfort.");
+        }
+        // Thunderstorm conditions
+        else if (condition === "Thunderstorm" || description.includes("thunderstorm")) {
+          setSuggestion("Thunderstorm warning! Wear quick-dry fabrics and neutral colors. Consider staying indoors or wearing a waterproof jacket if you must go out.");
+        }
+        // Snow conditions
+        else if (condition === "Snow" || description.includes("snow")) {
+          setSuggestion("It's snowy today! Bundle up with thermal layers, a warm coat, and don't forget accessories like scarves, gloves, and a warm hat for protection.");
+        }
+        // Windy conditions
+        else if (condition === "Wind" || description.includes("wind") || description.includes("windy")) {
+          setSuggestion("It's quite windy today. Wear fitted clothes that won't be blown around, and consider a light windproof jacket. Secure any loose accessories!");
+        }
+        // Cold weather
+        else if (temp < 10) {
+          setSuggestion("It's very chilly! Wear thermal underwear, multiple layers, and warm outerwear. Don't forget a warm hat and gloves!");
+        }
+        else if (temp < 15) {
+          setSuggestion("It's quite cool today. Consider wearing warm layers and insulated fabrics to stay cozy and comfortable.");
+        }
+        // Moderate/Neutral conditions
+        else {
+          setSuggestion("The weather is pleasant and mild. A simple layered outfit would be perfect—try a comfortable casual look with a light cardigan or jacket!");
         }
       } catch (err) {
         console.error("Weather fetch failed:", err);
@@ -269,10 +316,26 @@ const Home: React.FC = () => {
 
   const getWeatherIcon = (condition: string) => {
     switch (condition) {
-      case "Clear": return <span className="material-symbols-outlined weather-animate-sun">wb_sunny</span>;
-      case "Clouds": return <span className="material-symbols-outlined weather-animate-cloud">cloud</span>;
-      case "Rain": return <span className="material-symbols-outlined weather-animate-rain">rainy</span>;
-      default: return <span className="material-symbols-outlined">partly_cloudy_day</span>;
+      case "Clear":
+      case "Sunny":
+        return <span className="material-symbols-outlined weather-animate-sun">wb_sunny</span>;
+      case "Clouds":
+      case "Overcast":
+        return <span className="material-symbols-outlined weather-animate-cloud">cloud</span>;
+      case "Rain":
+      case "Drizzle":
+        return <span className="material-symbols-outlined weather-animate-rain">rainy</span>;
+      case "Thunderstorm":
+        return <span className="material-symbols-outlined weather-animate-storm">thunderstorm</span>;
+      case "Snow":
+        return <span className="material-symbols-outlined">ac_unit</span>;
+      case "Mist":
+      case "Fog":
+        return <span className="material-symbols-outlined">foggy</span>;
+      case "Wind":
+        return <span className="material-symbols-outlined">air</span>;
+      default:
+        return <span className="material-symbols-outlined">partly_cloudy_day</span>;
     }
   };
 
@@ -421,7 +484,7 @@ const Home: React.FC = () => {
               <p className="suggestion-text">{suggestion || "Loading weather data..."}</p>
             </div>
 
-            <div className="rhs-image-card" onClick={() => navigate("/mannequin")} role="button" tabIndex={0}>
+            <div className="rhs-image-card">
               <img src={activeShowpieceImage} alt="Dynamic outfit showcase" className="rhs-image-card-img" />
               <div className="rhs-image-overlay">
                 <span>Try on inspiration</span>

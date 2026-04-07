@@ -167,12 +167,16 @@
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 .weather-animate-cloud { animation: float 4s ease-in-out infinite; }
 
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+.weather-animate-rain { animation: pulse 2s ease-in-out infinite; color: #2196f3 !important; }
+
+.weather-animate-storm { animation: pulse 1.5s ease-in-out infinite; color: #424242 !important; }
+
 .rhs-image-card {
   position: relative;
   height: 170px;
   border-radius: 2.5rem;
   overflow: hidden;
-  cursor: pointer;
   background: #ebe7e4;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
   margin-top: auto;
