@@ -202,22 +202,48 @@ const Home: React.FC = () => {
 
     fetchData();
 
-    fetch(`https://api.openweathermap.org/data/2.5/weather?q=Kottayam&units=metric&appid=29c2a11f21b2372fe5eb4aca0a93bfd8`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data || !data.main) return;
+    const fetchWeather = async () => {
+      try {
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=Kottayam&units=metric&appid=29c2a11f21b2372fe5eb4aca0a93bfd8`
+        );
+
+        if (!response.ok) {
+          console.error("Weather API error:", response.statusText);
+          setSuggestion("Weather data unavailable. Layer your outfits for comfort and style!");
+          return;
+        }
+
+        const data = await response.json();
+
+        if (!data || !data.main || !data.weather || !Array.isArray(data.weather)) {
+          console.error("Invalid weather data structure");
+          setSuggestion("Weather data unavailable. Layer your outfits for comfort and style!");
+          return;
+        }
+
         setWeather(data);
         const temp = data.main.temp;
-        const condition = data.weather[0].main;
+        const condition = data.weather[0]?.main;
 
-        if (temp > 30 || condition === "Clear") {
+        if (temp >= 30 || condition === "Clear") {
           setSuggestion("It's quite warm today! We recommend opting for breathable cotton fabrics and light colors to stay cool and catch the breeze.");
         } else if (condition === "Rain") {
           setSuggestion("It looks like rain is on the way. You might want to choose quick-dry fabrics and avoid heavy layers to stay comfortable throughout the day.");
+        } else if (condition === "Clouds") {
+          setSuggestion("It's a bit cloudy today. A light jacket or layered outfit would be perfect for this weather.");
+        } else if (temp < 15) {
+          setSuggestion("It's quite chilly! Consider wearing warm layers and insulated fabrics to stay cozy.");
         } else {
           setSuggestion("The weather is a bit brisk. Try wearing layered outfits; it might be the best way to adapt to the shifting temperatures today.");
         }
-      });
+      } catch (err) {
+        console.error("Weather fetch failed:", err);
+        setSuggestion("Weather data unavailable. Layer your outfits for comfort and style!");
+      }
+    };
+
+    fetchWeather();
 
     return () => {
       window.clearTimeout(weeklyTimeoutId);
@@ -386,13 +412,13 @@ const Home: React.FC = () => {
           <section className="weather-side-column">
             <div className="card weather-card">
               <div className="weather-visual">
-                {weather && getWeatherIcon(weather.weather[0].main)}
+                {weather?.weather?.[0]?.main && getWeatherIcon(weather.weather[0].main)}
                 <div className="weather-temp">
-                  {weather ? `${Math.round(weather.main.temp)}°C` : "--"}
+                  {weather?.main?.temp ? `${Math.round(weather.main.temp)}°C` : "--"}
                 </div>
               </div>
               <h3 className="card-title">Forecast Suggestion</h3>
-              <p className="suggestion-text">{suggestion}</p>
+              <p className="suggestion-text">{suggestion || "Loading weather data..."}</p>
             </div>
 
             <div className="rhs-image-card" onClick={() => navigate("/mannequin")} role="button" tabIndex={0}>
