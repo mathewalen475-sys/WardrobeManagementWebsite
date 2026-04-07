@@ -10,6 +10,7 @@ import wardrobeRouter from './routes/wardrobe.routes.js';
 import uploadRouter from './routes/upload.routes.js';
 import clothesRouter from './routes/clothes.routes.js';
 import userRouter from './routes/user.routes.js';
+import tryonRouter from './routes/tryon.routes.js';
 import { requireAuth } from './middleware/auth.middleware.js';
 
 dotenv.config();
@@ -23,7 +24,9 @@ const __dirname = path.dirname(__filename);
 app.set('trust proxy', 1);
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL
+    ? process.env.FRONTEND_URL.split(',').map((u) => u.trim())
+    : ['http://localhost:5173', 'http://localhost:5174'],
   credentials: true,
 }));
 
@@ -58,5 +61,6 @@ app.post('/api/logout', (_req, res) => {
 app.use('/api', requireAuth, wardrobeRouter);
 app.use('/api', requireAuth, clothesRouter);
 app.use('/api', requireAuth, userRouter);
+app.use('/api', requireAuth, tryonRouter);
 
 export default app;

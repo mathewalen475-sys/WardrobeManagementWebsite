@@ -9,6 +9,7 @@ import CalendarPage from "./pages/CalendarPage";
 import Scheduler from "./pages/Scheduler";
 import Uploader from "./pages/Uploader";
 import Grading from "./pages/Grading";
+import TryOn from "./pages/TryOn";
 import { isAuthenticated } from "./services/auth";
 
 function ProtectedRoute({ children }: { children: ReactElement }) {
@@ -116,6 +117,23 @@ function App() {
         element={(
           <ProtectedRoute>
             <Grading />
+          </ProtectedRoute>
+        )}
+      />
+
+      <Route
+        path="/try-on"
+        element={(
+          <ProtectedRoute>
+            <TryOn />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/mannequin"
+        element={(
+          <ProtectedRoute>
+            <TryOn />
           </ProtectedRoute>
         )}
       />
