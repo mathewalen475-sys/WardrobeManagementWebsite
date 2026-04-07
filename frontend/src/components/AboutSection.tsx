@@ -9,7 +9,7 @@ const AboutSection: React.FC = () => {
 
       {/* ABOUT WADRO */}
 
-      <h2>ABOUT WADRO</h2>
+      <h2>ABOUT US</h2>
 
       <p>
         Wadro is your intelligent personal wardrobe assistant designed to simplify
@@ -64,7 +64,7 @@ const AboutSection: React.FC = () => {
         people worldwide manage their clothing smarter and dress confidently every day.
       </p>
 
-      <p>We aspire to:</p>
+      <h3>We aspire to</h3>
 
       <ul>
         <li>Integrate AI-based outfit recommendations</li>
