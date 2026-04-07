@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "../styles/Calender.css";
 import Uploader from "./Uploader";
+import Sidebar from "../components/sidebar";
 
 type CalendarDay = {
   date: Date;
@@ -33,14 +34,6 @@ const now = new Date();
 const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
 const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const sidebarLinks = [
-  { label: "Home", icon: "home", active: false },
-  { label: "Calendar", icon: "calendar_month", active: true },
-  { label: "Mannequin", icon: "accessibility_new", active: false },
-  { label: "Settings", icon: "settings", active: false },
-  { label: "Support", icon: "help", active: false },
-];
 
 const PLACEHOLDER_IMAGE =
   "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=900&q=80";
@@ -224,63 +217,7 @@ function CalendarPage() {
 
   return (
     <div className="atelier-shell">
-      <aside className="atelier-sidebar">
-        <div>
-          <div className="brand-block">
-            <h1>The Atelier</h1>
-            <p>Curating your style</p>
-          </div>
-
-          <nav className="sidebar-nav" aria-label="Primary">
-            {sidebarLinks.map((link) => (
-              <a
-                key={link.label}
-                className={`sidebar-link ${link.active ? "is-active" : ""}`}
-                href="#"
-              >
-                <span className="material-symbols-outlined" aria-hidden="true">
-                  {link.icon}
-                </span>
-                <span>{link.label}</span>
-              </a>
-            ))}
-          </nav>
-        </div>
-
-        <div className="sidebar-footer">
-          <button className="upload-button" type="button" onClick={() => setIsUploaderOpen(true)}>
-            <span className="material-symbols-outlined" aria-hidden="true">
-              add
-            </span>
-            Upload New
-          </button>
-
-          <div className="sidebar-link muted-link" role="link" tabIndex={0}>
-            <span className="material-symbols-outlined" aria-hidden="true">
-              settings
-            </span>
-            <span>Settings</span>
-          </div>
-
-          <div className="sidebar-link muted-link" role="link" tabIndex={0}>
-            <span className="material-symbols-outlined" aria-hidden="true">
-              help
-            </span>
-            <span>Support</span>
-          </div>
-
-          <div className="profile-card">
-            <img
-              alt="User profile"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8wzv-XgB2CFPLmg-ViRoltUNoFqYLHepMnU1YuTUugUANOFQYhvmKtyM9SHKtneIXrtwVbILHvAsYDc65z6Qv9jDwMJyTTF_jGB7sjLn7rP8yRtZxE4CcBXPszk9-NpgHIezoXHigbC8qgDm5uXe90NcQgBzNl32lGLcfMTtwxmIqbS-SI2ac6aj187uzYbwkIifMQQ0Cp_2yBlmfhnc0U_Xa3KlcWreClzNLA1zw32skq7ozocR4jtDkXcZGTO8FaUy2gCtA5_BA"
-            />
-            <div>
-              <strong>Elena Rossi</strong>
-              <span>Premium Member</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Sidebar />
 
       <main className="atelier-main">
         <header className="atelier-header">
@@ -348,7 +285,6 @@ function CalendarPage() {
               <button
                 type="button"
                 className="confirm-button"
-                onClick={() => setIsUploaderOpen(true)}
               >
                 Change Drip
               </button>

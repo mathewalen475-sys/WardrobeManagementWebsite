@@ -42,7 +42,7 @@ body {
   color: rgba(80, 68, 62, 0.72);
 }
 
-.sidebar-nav {
+.atelier-sidebar .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
