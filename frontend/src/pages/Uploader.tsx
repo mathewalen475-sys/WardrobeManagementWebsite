@@ -138,7 +138,7 @@ function Uploader({ isOpen, onClose, onUpload, redirectToGradingOnSuccess = fals
 					<img src={coverImage} alt="" />
 					<div className="uploader-visual-shade" />
 					<div className="uploader-brand">
-						<span>Atelier Wadro</span>
+					<span>Wadro</span>
 						<div />
 					</div>
 				</div>
