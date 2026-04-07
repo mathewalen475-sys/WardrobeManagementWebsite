@@ -59,11 +59,11 @@ const Sidebar: React.FC = () => {
         </NavLink>
 
         <NavLink
-          to="/grading"
-          className={({ isActive }) => `nav-item ${isActive || location.pathname === "/ratings" ? "active" : ""}`}
+          to="/mannequin"
+          className={({ isActive }) => `nav-item ${isActive || location.pathname === "/try-on" ? "active" : ""}`}
         >
           <span className="material-symbols-outlined">accessibility_new</span>
-          <span className="nav-text">Grading</span>
+          <span className="nav-text">Manniquine</span>
         </NavLink>
       </nav>
 
