@@ -5,7 +5,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Home from "./pages/Homepage";
-import CalendarPage from "./pages/CalenderPage";
+import CalendarPage from "./pages/CalendarPage";
 import Scheduler from "./pages/Scheduler";
 import Uploader from "./pages/Uploader";
 import Grading from "./pages/Grading";
