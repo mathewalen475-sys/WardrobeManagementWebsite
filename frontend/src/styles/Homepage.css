@@ -63,6 +63,7 @@
   grid-template-columns: 1.5fr 1fr;
   gap: 2rem;
   margin-top: 2.5rem;
+  align-items: stretch;
 }
 
 /* Calendar Styles */
@@ -125,12 +126,19 @@
 .action-content p { font-size: 0.9rem; color: #623E2A; margin: 0; max-width: 80%; }
 .action-btn { background: #432412; color: white; border: none; padding: 1rem; border-radius: 50%; cursor: pointer; display: flex; }
 
+.weather-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* Weather & Visuals */
 .weather-card {
   background-color: #ebe7e4;
   padding: 2.5rem;
   text-align: center;
   border-radius: 2.5rem;
+  min-height: 340px;
 }
 
 .weather-visual {
@@ -159,6 +167,68 @@
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 .weather-animate-cloud { animation: float 4s ease-in-out infinite; }
 
+.rhs-image-card {
+  position: relative;
+  height: 170px;
+  border-radius: 2.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  background: #ebe7e4;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+  margin-top: auto;
+}
+
+.rhs-image-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: rhsImagePulse 4.5s ease-in-out infinite;
+}
+
+.rhs-image-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.45));
+}
+
+.rhs-image-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  padding: 1rem 1.1rem 1.15rem;
+  color: white;
+}
+
+.rhs-image-overlay span {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.92;
+}
+
+.rhs-image-overlay strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.rhs-image-overlay p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 92%;
+}
+
+@keyframes rhsImagePulse {
+  0%, 100% { transform: scale(1); filter: saturate(1) contrast(1); }
+  50% { transform: scale(1.04); filter: saturate(1.12) contrast(1.05); }
+}
+
 /* Outfit Image Card */
 .outfit-display-card {
   margin-top: 2rem;
@@ -178,4 +248,10 @@
   background: linear-gradient(transparent, rgba(0,0,0,0.6));
   color: white;
   font-weight: bold;
+}
+
+@media (max-width: 900px) {
+  .rhs-image-card {
+    height: 300px;
+  }
 }

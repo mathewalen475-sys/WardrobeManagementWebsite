@@ -48,7 +48,7 @@ const Navbar: React.FC = () => {
             About us
           </a>
 
-          <a>
+          <a href="#contact">
             Contact us
           </a>
 

@@ -1,8 +1,39 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar";
 import artboardImg from "../assets/logo.webp";
+import wardrobeImg from "../assets/wardrobe.webp";
+import heroImg from "../assets/hero.webp";
 import { useNavigate } from "react-router-dom";
 import "../styles/Homepage.css";
+
+type ShowpieceImage = {
+  src: string;
+  title: string;
+  caption: string;
+};
+
+const fallbackShowpieceImages: ShowpieceImage[] = [
+  {
+    src: wardrobeImg,
+    title: "Wardrobe Harmony",
+    caption: "Balanced layers and polished neutrals",
+  },
+  {
+    src: heroImg,
+    title: "Modern Contrast",
+    caption: "Dynamic styling with clean visual punch",
+  },
+  {
+    src: wardrobeImg,
+    title: "Mannequin Ready",
+    caption: "Previewed and tuned for try-on",
+  },
+  {
+    src: heroImg,
+    title: "Fashion Pulse",
+    caption: "Energy, motion, and wardrobe confidence",
+  },
+];
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +43,8 @@ const Home: React.FC = () => {
   const [suggestion, setSuggestion] = useState("");
   const [month, setMonth] = useState("");
   const [scheduledDresses, setScheduledDresses] = useState<any[]>([]);
+  const [showpieceImages, setShowpieceImages] = useState<ShowpieceImage[]>(fallbackShowpieceImages);
+  const [activeShowpieceImage, setActiveShowpieceImage] = useState(fallbackShowpieceImages[0].src);
 
   useEffect(() => {
     const today = new Date();
@@ -21,27 +54,52 @@ const Home: React.FC = () => {
     const fetchData = async () => {
       const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
       try {
-        // Fetch User
         const userRes = await fetch(`${baseUrl}/api/user/profile`, { credentials: "include" });
         if (userRes.ok) {
           const data = await userRes.json();
-          setUserName(data?.username ?? data?.name ?? "User");
+          setUserName(data?.name ?? "User");
         }
-        
-        // Fetch Scheduled Dresses (names/types, not images)
-        const scheduleRes = await fetch(`${baseUrl}/api/user/schedule`);
+
+        const scheduleRes = await fetch(`${baseUrl}/api/user/schedule`, { credentials: "include" });
         if (scheduleRes.ok) {
           const sData = await scheduleRes.json();
-          setScheduledDresses(sData); // e.g., [{day: 24, item: "Linen Shirt"}]
+          setScheduledDresses(sData);
+        }
+
+        const clothesRes = await fetch(`${baseUrl}/api/my-clothes`, {
+          credentials: "include",
+        });
+
+        if (clothesRes.ok) {
+          const clothesData = await clothesRes.json();
+          const backendImages: string[] = Array.isArray(clothesData?.sessions)
+            ? clothesData.sessions
+                .flatMap((session: any) => session?.pairs ?? [])
+                .flatMap((pair: any) => [pair?.shirt?.imageUrl, pair?.pants?.imageUrl])
+                .filter((value: unknown): value is string => typeof value === "string" && value.length > 0)
+            : [];
+
+          const uniqueImages = Array.from(new Set(backendImages));
+          if (uniqueImages.length > 0) {
+            const backendShowpieces = uniqueImages.slice(0, 6).map((src: string, index: number) => ({
+              src,
+              title: index % 2 === 0 ? "Mannequin Preview" : "Fashion Combo",
+              caption: index % 2 === 0 ? "Backend wardrobe image" : "Live style inspiration",
+            }));
+
+            setShowpieceImages(backendShowpieces);
+            setActiveShowpieceImage(backendShowpieces[0].src);
+          }
         }
       } catch (err) {
         console.error("Fetch error:", err);
+        setShowpieceImages(fallbackShowpieceImages);
+        setActiveShowpieceImage(fallbackShowpieceImages[0].src);
       }
     };
 
     fetchData();
 
-    // Weather API
     fetch(`https://api.openweathermap.org/data/2.5/weather?q=Kottayam&units=metric&appid=29c2a11f21b2372fe5eb4aca0a93bfd8`)
       .then((res) => res.json())
       .then((data) => {
@@ -60,6 +118,20 @@ const Home: React.FC = () => {
       });
   }, []);
 
+  useEffect(() => {
+    if (showpieceImages.length === 0) {
+      return undefined;
+    }
+
+    let index = 0;
+    const interval = window.setInterval(() => {
+      index = (index + 1) % showpieceImages.length;
+      setActiveShowpieceImage(showpieceImages[index].src);
+    }, 2800);
+
+    return () => window.clearInterval(interval);
+  }, [showpieceImages]);
+
   const getWeatherIcon = (condition: string) => {
     switch (condition) {
       case "Clear": return <span className="material-symbols-outlined weather-animate-sun">wb_sunny</span>;
@@ -69,6 +141,8 @@ const Home: React.FC = () => {
     }
   };
 
+  const activeShowpiece = showpieceImages.find((item) => item.src === activeShowpieceImage) ?? fallbackShowpieceImages[0];
+
   return (
     <div className="homepage-container">
       <Sidebar />
@@ -77,12 +151,11 @@ const Home: React.FC = () => {
           <img src={artboardImg} alt="Website Group" className="header-artboard" />
         </div>
         <header className="header">
-          <p className="welcome-text">Welcome back, {userName}</p>
+          <p className="welcome-text">Welcome {userName},</p>
           <h2 className="date-text">{date}</h2>
         </header>
 
         <div className="dashboard-grid">
-          {/* Calendar Section */}
           <section className="calendar-container-wrapper">
             <div className="calendar-widget">
               <div className="calendar-header">
@@ -104,6 +177,7 @@ const Home: React.FC = () => {
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Upload Action Card */}
             <div className="action-card" onClick={() => navigate("/uploader")}>
               <div className="action-content">
@@ -114,9 +188,18 @@ const Home: React.FC = () => {
                 <span className="material-symbols-outlined">add_a_photo</span>
               </button>
             </div>
+
+            <div className="action-card mannequin-card" onClick={() => navigate("/mannequin")}>
+              <div className="action-content">
+                <h4>Try it on a mannequin</h4>
+                <p>Preview your outfit ideas on a mannequin before you wear them out.</p>
+              </div>
+              <button className="action-btn" aria-label="Open mannequin preview">
+                <span className="material-symbols-outlined">accessibility_new</span>
+              </button>
+            </div>
           </section>
 
-          {/* Weather Section */}
           <section className="weather-side-column">
             <div className="card weather-card">
               <div className="weather-visual">
@@ -129,7 +212,14 @@ const Home: React.FC = () => {
               <p className="suggestion-text">{suggestion}</p>
             </div>
 
-           
+            <div className="rhs-image-card" onClick={() => navigate("/mannequin")} role="button" tabIndex={0}>
+              <img src={activeShowpieceImage} alt="Dynamic outfit showcase" className="rhs-image-card-img" />
+              <div className="rhs-image-overlay">
+                <span>Try on inspiration</span>
+                <strong>{activeShowpiece.title}</strong>
+                <p>{activeShowpiece.caption}</p>
+              </div>
+            </div>
           </section>
         </div>
       </main>

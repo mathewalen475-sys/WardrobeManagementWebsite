@@ -76,14 +76,17 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  overflow: hidden;
   background-color: #E6E2DE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.profile-avatar-icon {
+  color: #432412;
+  font-size: 1.25rem;
+  line-height: 1;
 }
 
 .profile-info {
