@@ -87,7 +87,7 @@ const Sidebar: React.FC = () => {
           className="logout-btn"
           onClick={async () => {
             await logoutUser();
-            navigate("/login");
+            navigate("/");
           }}
         >
           <span className="material-symbols-outlined">logout</span>
