@@ -105,7 +105,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Upload Action Card */}
-            <div className="action-card" onClick={() => navigate("/ratings")}>
+            <div className="action-card" onClick={() => navigate("/uploader")}>
               <div className="action-content">
                 <h4>Ready to expand your wardrobe?</h4>
                 <p>Upload new outfits to get AI-powered style ratings and improve your daily schedule.</p>

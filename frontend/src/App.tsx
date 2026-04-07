@@ -8,6 +8,7 @@ import Home from "./pages/Homepage";
 import CalendarPage from "./pages/CalenderPage";
 import Scheduler from "./pages/Scheduler";
 import Uploader from "./pages/Uploader";
+import Grading from "./pages/Grading";
 import { isAuthenticated } from "./services/auth";
 
 function ProtectedRoute({ children }: { children: ReactElement }) {
@@ -36,6 +37,7 @@ function UploaderRoute() {
     <Uploader
       isOpen={true}
       onClose={() => navigate(-1)}
+      redirectToGradingOnSuccess={true}
     />
   );
 }
@@ -104,7 +106,16 @@ function App() {
         path="/ratings"
         element={(
           <ProtectedRoute>
-            <UploaderRoute />
+            <Grading />
+          </ProtectedRoute>
+        )}
+      />
+
+      <Route
+        path="/grading"
+        element={(
+          <ProtectedRoute>
+            <Grading />
           </ProtectedRoute>
         )}
       />
