@@ -8,6 +8,7 @@ import Home from "./pages/Homepage";
 import CalendarPage from "./pages/CalenderPage";
 import Scheduler from "./pages/Scheduler";
 import Uploader from "./pages/Uploader";
+import TryOn from "./pages/TryOn";
 import { isAuthenticated } from "./services/auth";
 
 function ProtectedRoute({ children }: { children: ReactElement }) {
@@ -105,6 +106,23 @@ function App() {
         element={(
           <ProtectedRoute>
             <UploaderRoute />
+          </ProtectedRoute>
+        )}
+      />
+
+      <Route
+        path="/try-on"
+        element={(
+          <ProtectedRoute>
+            <TryOn />
+          </ProtectedRoute>
+        )}
+      />
+      <Route
+        path="/mannequin"
+        element={(
+          <ProtectedRoute>
+            <TryOn />
           </ProtectedRoute>
         )}
       />

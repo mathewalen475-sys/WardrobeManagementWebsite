@@ -44,10 +44,10 @@ const Sidebar: React.FC = () => {
           <span className="nav-text">Calendar</span>
         </Link>
 
-        <a className="nav-item">
+        <Link className="nav-item" to="/try-on">
           <span className="material-symbols-outlined">accessibility_new</span>
           <span className="nav-text">Mannequin</span>
-        </a>
+        </Link>
       </nav>
 
       {/* Bottom Section */}
