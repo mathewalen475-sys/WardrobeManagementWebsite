@@ -173,25 +173,62 @@ router.post('/clothes/schedule', async (req, res) => {
       };
     }
 
-    const { data, error } = await supabaseAdmin
-      .from('outfit_schedules')
-      .upsert({
-        user_id: userId,
-        scheduled_date: scheduledDate,
+    const scheduleRow = {
+      user_id: userId,
+      scheduled_date: scheduledDate,
+      selected_outfit_id: selected.id,
+      shirt_image_url: selected.shirt_image_url,
+      shirt_name: selected.shirt_name,
+      shirt_color: selected.shirt_color || 'unknown',
+      shirt_color_hex: selected.shirt_color_hex || '#8a8a8a',
+      pants_image_url: selected.pants_image_url,
+      pants_name: selected.pants_name,
+      score: selected.score,
+      reason: selected.reason,
+    };
+
+    const scheduleRowWithData = {
+      ...scheduleRow,
+      data: {
         selected_outfit_id: selected.id,
-        shirt_image_url: selected.shirt_image_url,
-        shirt_name: selected.shirt_name,
-        shirt_color: selected.shirt_color || 'unknown',
-        shirt_color_hex: selected.shirt_color_hex || '#8a8a8a',
-        pants_image_url: selected.pants_image_url,
-        pants_name: selected.pants_name,
+        shirt: {
+          image_url: selected.shirt_image_url,
+          name: selected.shirt_name,
+          color: selected.shirt_color || 'unknown',
+          color_hex: selected.shirt_color_hex || '#8a8a8a',
+        },
+        pants: {
+          image_url: selected.pants_image_url,
+          name: selected.pants_name,
+        },
         score: selected.score,
         reason: selected.reason,
-      }, {
+      },
+    };
+
+    let data;
+    let error;
+
+    ({ data, error } = await supabaseAdmin
+      .from('outfit_schedules')
+      .upsert(scheduleRowWithData, {
         onConflict: 'user_id,scheduled_date',
       })
       .select('id, user_id, scheduled_date, selected_outfit_id, shirt_image_url, shirt_name, shirt_color, shirt_color_hex, pants_image_url, pants_name, score, reason, created_at')
-      .single();
+      .single());
+
+    const missingDataColumn =
+      error?.code === '42703' || String(error?.message || '').toLowerCase().includes('column') && String(error?.message || '').toLowerCase().includes('data');
+
+    if (missingDataColumn) {
+      ({ data, error } = await supabaseAdmin
+        .from('outfit_schedules')
+        .upsert(scheduleRow, {
+          onConflict: 'user_id,scheduled_date',
+        })
+        .select('id, user_id, scheduled_date, selected_outfit_id, shirt_image_url, shirt_name, shirt_color, shirt_color_hex, pants_image_url, pants_name, score, reason, created_at')
+        .single());
+    }
 
     if (!error && data) {
       return res.status(200).json({
@@ -215,6 +252,21 @@ router.post('/clothes/schedule', async (req, res) => {
         pants_name: selected.pants_name,
         score: selected.score,
         reason: selected.reason,
+        data: {
+          selected_outfit_id: selected.id,
+          shirt: {
+            image_url: selected.shirt_image_url,
+            name: selected.shirt_name,
+            color: selected.shirt_color || 'unknown',
+            color_hex: selected.shirt_color_hex || '#8a8a8a',
+          },
+          pants: {
+            image_url: selected.pants_image_url,
+            name: selected.pants_name,
+          },
+          score: selected.score,
+          reason: selected.reason,
+        },
         created_at: new Date().toISOString(),
       };
 

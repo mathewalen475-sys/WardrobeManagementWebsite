@@ -13,5 +13,80 @@
     "score": 60,
     "reason": "The blue t-shirt and black pants create a classic and simple combination with moderate color harmony and contrast, but lack visual interest and versatility. The outfit's visual cohesion is good due to the solid colors.",
     "created_at": "2026-04-07T01:19:48.011Z"
+  },
+  {
+    "id": "d0d99a97-e09f-49ea-a103-377491e2f907-2026-04-08",
+    "user_id": "d0d99a97-e09f-49ea-a103-377491e2f907",
+    "scheduled_date": "2026-04-08",
+    "selected_outfit_id": "2378d5a8-174f-421e-a7a1-86b4819f50ab",
+    "shirt_image_url": "http://localhost:3000/uploads/1775536650840-hmxn5f-shirt3.jpeg",
+    "shirt_name": "black shirt",
+    "shirt_color": "unknown",
+    "shirt_color_hex": "#8a8a8a",
+    "pants_image_url": "http://localhost:3000/uploads/1775536650841-tnt5ku-pant2.jpeg",
+    "pants_name": "beige pants",
+    "score": 80,
+    "reason": "monochromatic simplicity",
+    "created_at": "2026-04-07T04:38:36.918Z"
+  },
+  {
+    "id": "d0d99a97-e09f-49ea-a103-377491e2f907-2026-04-10",
+    "user_id": "d0d99a97-e09f-49ea-a103-377491e2f907",
+    "scheduled_date": "2026-04-10",
+    "selected_outfit_id": "8431734b-d6ff-449a-b41d-2fbb21db92e8",
+    "shirt_image_url": "http://localhost:3000/uploads/1775537678455-o0tz1z-shirt1.jpeg",
+    "shirt_name": "white t-shirt",
+    "shirt_color": "unknown",
+    "shirt_color_hex": "#8a8a8a",
+    "pants_image_url": "http://localhost:3000/uploads/1775537678454-1vcg9g-pant-1.jpeg",
+    "pants_name": "black pants",
+    "score": 80,
+    "reason": "Classic combination of white and black creates perfect contrast and balance; simplicity allows for high versatility and visual cohesion.",
+    "data": {
+      "selected_outfit_id": "8431734b-d6ff-449a-b41d-2fbb21db92e8",
+      "shirt": {
+        "image_url": "http://localhost:3000/uploads/1775537678455-o0tz1z-shirt1.jpeg",
+        "name": "white t-shirt",
+        "color": "unknown",
+        "color_hex": "#8a8a8a"
+      },
+      "pants": {
+        "image_url": "http://localhost:3000/uploads/1775537678454-1vcg9g-pant-1.jpeg",
+        "name": "black pants"
+      },
+      "score": 80,
+      "reason": "Classic combination of white and black creates perfect contrast and balance; simplicity allows for high versatility and visual cohesion."
+    },
+    "created_at": "2026-04-07T04:54:59.104Z"
+  },
+  {
+    "id": "d0d99a97-e09f-49ea-a103-377491e2f907-2026-04-07",
+    "user_id": "d0d99a97-e09f-49ea-a103-377491e2f907",
+    "scheduled_date": "2026-04-07",
+    "selected_outfit_id": "90dbd46d-9967-4501-91f1-c66e85361af6",
+    "shirt_image_url": "http://localhost:3000/uploads/1775537678455-o0tz1z-shirt1.jpeg",
+    "shirt_name": "white t-shirt",
+    "shirt_color": "unknown",
+    "shirt_color_hex": "#8a8a8a",
+    "pants_image_url": "http://localhost:3000/uploads/1775537678454-1vcg9g-pant-1.jpeg",
+    "pants_name": "black pants",
+    "score": 80,
+    "reason": "Classic combination of white and black creates perfect color harmony and contrast, but limited versatility and visual cohesion due to lack of pattern or texture.",
+    "data": {
+      "selected_outfit_id": "90dbd46d-9967-4501-91f1-c66e85361af6",
+      "shirt": {
+        "image_url": "http://localhost:3000/uploads/1775537678455-o0tz1z-shirt1.jpeg",
+        "name": "white t-shirt",
+        "color": "unknown",
+        "color_hex": "#8a8a8a"
+      },
+      "pants": {
+        "image_url": "http://localhost:3000/uploads/1775537678454-1vcg9g-pant-1.jpeg",
+        "name": "black pants"
+      },
+      "score": 80,
+      "reason": "Classic combination of white and black creates perfect color harmony and contrast, but limited versatility and visual cohesion due to lack of pattern or texture."
+    },
+    "created_at": "2026-04-07T04:56:48.872Z"
   }
 ]

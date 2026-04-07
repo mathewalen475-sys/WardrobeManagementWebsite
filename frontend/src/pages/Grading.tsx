@@ -549,10 +549,6 @@ function Grading() {
               <p>{topRanking.reason}</p>
             </article>
           ) : null}
-
-          <button type="button" className="grading-finalize-btn">
-            Finalize Outfit
-          </button>
         </aside>
       </main>
 
