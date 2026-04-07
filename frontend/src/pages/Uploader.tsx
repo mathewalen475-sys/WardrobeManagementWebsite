@@ -1,19 +1,39 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/Uploader.css";
 
 type UploaderProps = {
 	isOpen: boolean;
 	onClose: () => void;
 	onUpload?: (files: File[]) => void;
+	redirectToGradingOnSuccess?: boolean;
+};
+
+type ClassifiedImage = {
+	filename: string;
+	url: string;
+	category: "shirt" | "pants" | "other";
+	label: string;
+};
+
+type ClassificationResponse = {
+	shirts: ClassifiedImage[];
+	pants: ClassifiedImage[];
+	other?: ClassifiedImage[];
 };
 
 const coverImage =
 	"https://lh3.googleusercontent.com/aida-public/AB6AXuCAaG3Tk0KEuwyn0F_s1pNvsNYpeuWqjtITbRhdTS3Ob0fHy8DnoW0RNooHXnMe0sTUPMRKMlS4T41VNxZr8k9Jxkg0xQxb9LbijIpMCmxkT7RLriEQlqdj48BEIeETIpbmeikSf7wo4ZCTEUTAPyhNPuwHJQ2cbF95A0nXZY77Ly4USHn3FzoZE_wgTRf_EK_oqKleYTXsj9iWxncajsqA3NLwBL-QX2S0KvapNGsGHvYVVebi7Z-ubuKvC9hoGzGGk53QInAN-is";
 
-function Uploader({ isOpen, onClose, onUpload }: UploaderProps) {
+function Uploader({ isOpen, onClose, onUpload, redirectToGradingOnSuccess = false }: UploaderProps) {
+	const navigate = useNavigate();
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [isDragOver, setIsDragOver] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [uploadError, setUploadError] = useState("");
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+	const getBaseUrl = () => import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
 
 	const appendFiles = (incoming: FileList | null) => {
 		if (!incoming || incoming.length === 0) {
@@ -27,6 +47,76 @@ function Uploader({ isOpen, onClose, onUpload }: UploaderProps) {
 	if (!isOpen) {
 		return null;
 	}
+
+	const handleUpload = async () => {
+		if (selectedFiles.length === 0 || isSubmitting) {
+			return;
+		}
+
+		setUploadError("");
+		setIsSubmitting(true);
+
+		try {
+			const formData = new FormData();
+			selectedFiles.forEach((file) => formData.append("images", file));
+
+			const uploadResponse = await fetch(`${getBaseUrl()}/api/upload-local`, {
+				method: "POST",
+				credentials: "include",
+				body: formData,
+			});
+
+			const uploadPayload = await uploadResponse.json().catch(() => ({}));
+			if (!uploadResponse.ok) {
+				const message = (uploadPayload as { error?: string }).error ?? "Upload failed. Please try again.";
+				throw new Error(message);
+			}
+
+			const uploadedImages = Array.isArray((uploadPayload as { uploadedImages?: Array<{ filename?: string }> }).uploadedImages)
+				? (uploadPayload as { uploadedImages: Array<{ filename?: string }> }).uploadedImages
+				: [];
+
+			const filenames = uploadedImages
+				.map((item) => item.filename)
+				.filter((value): value is string => typeof value === "string" && value.length > 0);
+
+			if (filenames.length === 0) {
+				throw new Error("Upload succeeded but no files were returned by server.");
+			}
+
+			const classifyResponse = await fetch(`${getBaseUrl()}/api/wardrobe/classify-uploaded`, {
+				method: "POST",
+				credentials: "include",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ files: filenames }),
+			});
+
+			const classifyPayload = (await classifyResponse.json().catch(() => ({}))) as ClassificationResponse & { error?: string };
+			if (!classifyResponse.ok) {
+				throw new Error(classifyPayload.error ?? "Classification failed. Please try again.");
+			}
+
+			onUpload?.(selectedFiles);
+			setSelectedFiles([]);
+
+			if (redirectToGradingOnSuccess) {
+				navigate("/grading", {
+					state: {
+						classification: classifyPayload,
+					},
+				});
+			} else {
+				onClose();
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : "Upload failed. Please try again.";
+			setUploadError(message);
+		} finally {
+			setIsSubmitting(false);
+		}
+	};
 
 	return (
 		<div className="uploader-overlay" role="dialog" aria-modal="true" aria-label="Upload outfits">
@@ -121,6 +211,8 @@ function Uploader({ isOpen, onClose, onUpload }: UploaderProps) {
 						{selectedFiles.length > 0 ? (
 							<p className="uploader-selection-note">{selectedFiles.length} file(s) selected</p>
 						) : null}
+
+						{uploadError ? <p className="uploader-selection-note">{uploadError}</p> : null}
 					</div>
 
 					<footer className="uploader-footer">
@@ -130,14 +222,10 @@ function Uploader({ isOpen, onClose, onUpload }: UploaderProps) {
 							<button
 								type="button"
 								className="uploader-submit"
-								disabled={selectedFiles.length === 0}
-								onClick={() => {
-									onUpload?.(selectedFiles);
-									setSelectedFiles([]);
-									onClose();
-								}}
+								disabled={selectedFiles.length === 0 || isSubmitting}
+								onClick={handleUpload}
 							>
-								Upload Selected
+								{isSubmitting ? "Uploading & Classifying..." : "Upload Selected"}
 							</button>
 
 							<button

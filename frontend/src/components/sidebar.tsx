@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "./sidebar.css";
 import { logoutUser } from "../services/auth";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("User");
-  const userStatus = "User";
-
+  const location = useLocation();
+  const [userName, setUserName] = useState("Loading...");
+  const [userStatus] = useState("Member");
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -43,20 +42,29 @@ const Sidebar: React.FC = () => {
 
       {/* Navigation - Keeps original spacing/placing */}
       <nav className="sidebar-nav">
-        <a className="nav-item active">
+        <NavLink
+          to="/home"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">home</span>
           <span className="nav-text">Home</span>
-        </a>
+        </NavLink>
 
-        <Link className="nav-item" to="/calendar">
+        <NavLink
+          to="/calendar"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">calendar_month</span>
           <span className="nav-text">Calendar</span>
-        </Link>
+        </NavLink>
 
-        <a className="nav-item">
+        <NavLink
+          to="/grading"
+          className={({ isActive }) => `nav-item ${isActive || location.pathname === "/ratings" ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">accessibility_new</span>
-          <span className="nav-text">Mannequin</span>
-        </a>
+          <span className="nav-text">Grading</span>
+        </NavLink>
       </nav>
 
       {/* Bottom Section */}
