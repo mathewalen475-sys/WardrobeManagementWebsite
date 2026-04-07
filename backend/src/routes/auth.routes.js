@@ -30,9 +30,25 @@ function isValidRegistrationInput(username, password, name) {
 
 function isValidLoginInput(username, password) {
   return (
-    isValidEmail(username) &&
+    typeof username === 'string' &&
+    username.trim().length > 0 &&
     typeof password === 'string' &&
     password.length > 0
+  );
+}
+
+async function findUserByIdentifier(identifier) {
+  const normalizedIdentifier = identifier.trim().toLowerCase();
+  const { data, error } = await supabaseAdmin.auth.admin.listUsers();
+
+  if (error) {
+    throw error;
+  }
+
+  return (
+    data.users.find((user) => user.email?.toLowerCase() === normalizedIdentifier) ??
+    data.users.find((user) => (user.user_metadata?.username ?? '').toLowerCase() === normalizedIdentifier) ??
+    null
   );
 }
 
@@ -72,19 +88,8 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: createError.message });
     }
 
-    const signInResult = await supabaseAuth.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInResult.error || !signInResult.data.session?.access_token) {
-      return res.status(401).json({ message: 'Account created but auto-login failed. Please log in manually.' });
-    }
-
-    setAuthCookie(res, signInResult.data.session.access_token);
-
     return res.status(201).json({
-      message: 'Registration successful',
+      message: 'Registration successful. Please log in.',
       user: {
         id: createData.user.id,
         email: createData.user.email,
@@ -103,13 +108,33 @@ router.post('/login', async (req, res) => {
     return res.status(400).json({ message: 'Invalid input. Provide a valid email and password.' });
   }
 
-  const email = username.trim().toLowerCase();
+  const identifier = username.trim();
+  const normalizedIdentifier = identifier.toLowerCase();
 
   try {
-    const { data, error } = await supabaseAuth.auth.signInWithPassword({
-      email,
-      password,
-    });
+    let signInResult = null;
+
+    if (isValidEmail(identifier)) {
+      signInResult = await supabaseAuth.auth.signInWithPassword({
+        email: normalizedIdentifier,
+        password,
+      });
+    }
+
+    if (!signInResult || signInResult.error || !signInResult.data.session?.access_token) {
+      const user = await findUserByIdentifier(identifier);
+
+      if (!user?.email) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+
+      signInResult = await supabaseAuth.auth.signInWithPassword({
+        email: user.email,
+        password,
+      });
+    }
+
+    const { data, error } = signInResult;
 
     if (error || !data.session?.access_token) {
       return res.status(401).json({ message: 'Invalid credentials' });

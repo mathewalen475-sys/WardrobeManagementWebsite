@@ -50,7 +50,6 @@ export async function registerUser(payload: RegisterPayload) {
   });
 
   const data = await handleJsonResponse(response);
-  localStorage.setItem(AUTH_FLAG_KEY, "true");
   return data;
 }
 

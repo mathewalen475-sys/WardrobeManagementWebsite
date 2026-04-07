@@ -4,8 +4,10 @@ import "../styles/Scheduler.css";
 type SchedulerProps = {
 	isOpen: boolean;
 	initialDate?: Date;
+	topImage?: string;
+	bottomImage?: string;
 	onClose: () => void;
-	onSchedule?: (scheduledDate: Date) => void;
+	onSchedule?: (scheduledDate: Date) => Promise<void> | void;
 };
 
 const defaultTopImage =
@@ -20,13 +22,16 @@ function formatIsoDate(date: Date) {
 	).padStart(2, "0")}`;
 }
 
-function Scheduler({ isOpen, initialDate, onClose, onSchedule }: SchedulerProps) {
+function Scheduler({ isOpen, initialDate, topImage, bottomImage, onClose, onSchedule }: SchedulerProps) {
 	const defaultDate = useMemo(() => initialDate ?? new Date(), [initialDate]);
 	const [selectedDate, setSelectedDate] = useState(() => formatIsoDate(defaultDate));
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [submitError, setSubmitError] = useState("");
 
 	useEffect(() => {
 		if (isOpen) {
 			setSelectedDate(formatIsoDate(defaultDate));
+			setSubmitError("");
 		}
 	}, [defaultDate, isOpen]);
 
@@ -59,12 +64,12 @@ function Scheduler({ isOpen, initialDate, onClose, onSchedule }: SchedulerProps)
 
 				<div className="scheduler-images">
 					<article className="scheduler-image-card">
-						<img src={defaultTopImage} alt="Top piece" />
+						<img src={topImage || defaultTopImage} alt="Top piece" />
 						<span>Top Piece</span>
 					</article>
 
 					<article className="scheduler-image-card">
-						<img src={defaultBottomImage} alt="Bottom piece" />
+						<img src={bottomImage || defaultBottomImage} alt="Bottom piece" />
 						<span>Bottom Piece</span>
 					</article>
 				</div>
@@ -89,15 +94,29 @@ function Scheduler({ isOpen, initialDate, onClose, onSchedule }: SchedulerProps)
 					<button
 						type="button"
 						className="scheduler-submit"
-						onClick={() => {
-							if (selectedDate) {
-								onSchedule?.(new Date(`${selectedDate}T00:00:00`));
+						disabled={isSubmitting}
+						onClick={async () => {
+							if (!selectedDate || isSubmitting) {
+								return;
 							}
-							onClose();
+
+							setIsSubmitting(true);
+							setSubmitError("");
+							try {
+								await onSchedule?.(new Date(`${selectedDate}T00:00:00`));
+								onClose();
+							} catch (error) {
+								const message = error instanceof Error ? error.message : "Failed to schedule outfit.";
+								setSubmitError(message);
+							} finally {
+								setIsSubmitting(false);
+							}
 						}}
 					>
-						Schedule Outfit
+						{isSubmitting ? "Scheduling..." : "Schedule Outfit"}
 					</button>
+
+					{submitError ? <p className="scheduler-error">{submitError}</p> : null}
 
 					<button type="button" className="scheduler-cancel" onClick={onClose}>
 						Cancel and return to Atelier

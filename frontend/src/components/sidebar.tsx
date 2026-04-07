@@ -1,27 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import "./sidebar.css";
 import { logoutUser } from "../services/auth";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userName, setUserName] = useState("Loading...");
   const [userStatus] = useState("Member");
-
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
   useEffect(() => {
-    // Backend fetch logic
     const fetchUser = async () => {
       try {
-        // const response = await fetch("YOUR_BACKEND_URL/profile");
-        // const data = await response.json();
-        setUserName("Akhil Nair"); 
+        const response = await fetch(`${baseUrl}/api/user/profile`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = await response.json();
+        setUserName(data?.name ?? "User");
 
       } catch (err) {
         setUserName("User");
       }
     };
+
     fetchUser();
-  }, []);
+  }, [baseUrl]);
 
   return (
     <aside className="sidebar">
@@ -34,20 +42,29 @@ const Sidebar: React.FC = () => {
 
       {/* Navigation - Keeps original spacing/placing */}
       <nav className="sidebar-nav">
-        <a className="nav-item active">
+        <NavLink
+          to="/home"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">home</span>
           <span className="nav-text">Home</span>
-        </a>
+        </NavLink>
 
-        <Link className="nav-item" to="/calendar">
+        <NavLink
+          to="/calendar"
+          className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">calendar_month</span>
           <span className="nav-text">Calendar</span>
-        </Link>
+        </NavLink>
 
-        <a className="nav-item">
+        <NavLink
+          to="/mannequin"
+          className={({ isActive }) => `nav-item ${isActive || location.pathname === "/try-on" ? "active" : ""}`}
+        >
           <span className="material-symbols-outlined">accessibility_new</span>
-          <span className="nav-text">Mannequin</span>
-        </a>
+          <span className="nav-text">Manniquine</span>
+        </NavLink>
       </nav>
 
       {/* Bottom Section */}
@@ -55,7 +72,9 @@ const Sidebar: React.FC = () => {
         {/* Profile Section */}
         <div className="profile-section">
           <div className="profile-avatar">
-            <img src="https://via.placeholder.com/100" alt="User" />
+            <span className="material-symbols-outlined profile-avatar-icon" aria-hidden="true">
+              person
+            </span>
           </div>
           <div className="profile-info">
             <span className="profile-name">{userName}</span>
@@ -68,7 +87,7 @@ const Sidebar: React.FC = () => {
           className="logout-btn"
           onClick={async () => {
             await logoutUser();
-            navigate("/login");
+            navigate("/");
           }}
         >
           <span className="material-symbols-outlined">logout</span>

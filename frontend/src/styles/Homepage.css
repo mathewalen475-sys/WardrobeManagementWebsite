@@ -63,6 +63,7 @@
   grid-template-columns: 1.5fr 1fr;
   gap: 2rem;
   margin-top: 2.5rem;
+  align-items: stretch;
 }
 
 /* Calendar Styles */
@@ -86,7 +87,7 @@
 
 .calendar-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1rem; }
 
-.calendar-col { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.calendar-col { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; cursor: pointer; }
 
 .day-label { font-size: 0.65rem; color: #8b7e74; font-weight: bold; }
 
@@ -106,7 +107,7 @@
 .day-number:hover { background-color: white; }
 .day-number.active { background-color: #432412; color: white; }
 
-.schedule-dot { width: 4px; height: 4px; background-color: #432412; border-radius: 50%; }
+.schedule-dot { width: 6px; height: 6px; background-color: #432412; border-radius: 50%; transition: all 0.3s ease; }
 
 /* Action Card */
 .action-card {
@@ -125,12 +126,19 @@
 .action-content p { font-size: 0.9rem; color: #623E2A; margin: 0; max-width: 80%; }
 .action-btn { background: #432412; color: white; border: none; padding: 1rem; border-radius: 50%; cursor: pointer; display: flex; }
 
+.weather-side-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* Weather & Visuals */
 .weather-card {
   background-color: #ebe7e4;
   padding: 2.5rem;
   text-align: center;
   border-radius: 2.5rem;
+  min-height: 340px;
 }
 
 .weather-visual {
@@ -159,6 +167,72 @@
 @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
 .weather-animate-cloud { animation: float 4s ease-in-out infinite; }
 
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+.weather-animate-rain { animation: pulse 2s ease-in-out infinite; color: #2196f3 !important; }
+
+.weather-animate-storm { animation: pulse 1.5s ease-in-out infinite; color: #424242 !important; }
+
+.rhs-image-card {
+  position: relative;
+  height: 170px;
+  border-radius: 2.5rem;
+  overflow: hidden;
+  background: #ebe7e4;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+  margin-top: auto;
+}
+
+.rhs-image-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  animation: rhsImagePulse 4.5s ease-in-out infinite;
+}
+
+.rhs-image-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.45));
+}
+
+.rhs-image-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 1;
+  padding: 1rem 1.1rem 1.15rem;
+  color: white;
+}
+
+.rhs-image-overlay span {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 800;
+  opacity: 0.92;
+}
+
+.rhs-image-overlay strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}
+
+.rhs-image-overlay p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  max-width: 92%;
+}
+
+@keyframes rhsImagePulse {
+  0%, 100% { transform: scale(1); filter: saturate(1) contrast(1); }
+  50% { transform: scale(1.04); filter: saturate(1.12) contrast(1.05); }
+}
+
 /* Outfit Image Card */
 .outfit-display-card {
   margin-top: 2rem;
@@ -178,4 +252,81 @@
   background: linear-gradient(transparent, rgba(0,0,0,0.6));
   color: white;
   font-weight: bold;
+}
+
+/* Outfit Detail Card */
+.outfit-detail-card {
+  background-color: #f1ede9;
+  padding: 2rem;
+  border-radius: 2rem;
+}
+
+.outfit-detail-header {
+  margin-bottom: 1.5rem;
+}
+
+.outfit-detail-header h4 {
+  font-family: serif;
+  font-size: 1.25rem;
+  color: #432412;
+  margin: 0 0 0.5rem 0;
+}
+
+.outfit-date {
+  font-size: 0.85rem;
+  color: #8b7e74;
+  margin: 0;
+  font-weight: 500;
+}
+
+.outfit-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.outfit-preview {
+  aspect-ratio: 3 / 4;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: #e8e4e0;
+}
+
+.outfit-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.outfit-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.outfit-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: white;
+  border-radius: 0.75rem;
+}
+
+.outfit-meta-row span {
+  font-size: 0.85rem;
+  color: #8b7e74;
+  font-weight: 500;
+}
+
+.outfit-meta-row strong {
+  font-size: 0.95rem;
+  color: #432412;
+}
+
+@media (max-width: 900px) {
+  .rhs-image-card {
+    height: 300px;
+  }
 }

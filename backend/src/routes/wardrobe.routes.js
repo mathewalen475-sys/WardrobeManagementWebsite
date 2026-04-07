@@ -1,4 +1,7 @@
 import { Router } from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import multer from 'multer';
 import Groq from 'groq-sdk';
 
@@ -6,6 +9,10 @@ import { supabaseAdmin } from '../lib/supabase.js';
 import { uploadToSupabaseStorage } from '../lib/storage.js';
 
 const router = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, '../../public/uploads');
 
 const MAX_IMAGES_PER_CALL = 5;
 
@@ -122,6 +129,147 @@ function extractAssistantText(completion) {
 
   return '';
 }
+
+function parseClassificationLines(text) {
+  if (typeof text !== 'string' || text.trim().length === 0) {
+    return [];
+  }
+
+  const results = [];
+
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line.toUpperCase().startsWith('CLASSIFICATION |')) {
+      continue;
+    }
+
+    const filename = line.match(/filename\s*=\s*([^|]+)/i)?.[1]?.trim() || '';
+    const categoryRaw = line.match(/category\s*=\s*([^|]+)/i)?.[1]?.trim().toLowerCase() || 'other';
+    const label = line.match(/label\s*=\s*(.+)$/i)?.[1]?.trim() || '';
+
+    const category = categoryRaw === 'shirt' || categoryRaw === 'pants' ? categoryRaw : 'other';
+    if (!filename) {
+      continue;
+    }
+
+    results.push({ filename, category, label });
+  }
+
+  return results;
+}
+
+router.post('/wardrobe/classify-uploaded', async (req, res) => {
+  try {
+    const files = Array.isArray(req.body?.files) ? req.body.files : [];
+
+    if (files.length === 0) {
+      return res.status(400).json({ error: 'files array is required.' });
+    }
+
+    const normalizedFiles = files
+      .map((name) => (typeof name === 'string' ? name.trim() : ''))
+      .filter(Boolean)
+      .map((name) => path.basename(name));
+
+    if (normalizedFiles.length === 0) {
+      return res.status(400).json({ error: 'No valid filenames provided.' });
+    }
+
+    const diskFiles = normalizedFiles
+      .map((filename) => {
+        const fullPath = path.resolve(uploadsDir, filename);
+        if (!fs.existsSync(fullPath)) {
+          return null;
+        }
+
+        return {
+          filename,
+          fullPath,
+          buffer: fs.readFileSync(fullPath),
+          mime: filename.endsWith('.png')
+            ? 'image/png'
+            : filename.endsWith('.webp')
+              ? 'image/webp'
+              : filename.endsWith('.gif')
+                ? 'image/gif'
+                : 'image/jpeg',
+        };
+      })
+      .filter(Boolean);
+
+    if (diskFiles.length === 0) {
+      return res.status(404).json({ error: 'Uploaded files not found on server.' });
+    }
+
+    const groqKeys = getGroqApiKeys();
+    if (groqKeys.length === 0) {
+      return res.status(500).json({ error: 'Missing GROQ_API_KEY or GROQ_API_KEYS environment configuration.' });
+    }
+
+    const model = process.env.GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
+    const instruction = [
+      'You are a clothing classifier for wardrobe images.',
+      'Classify each image as exactly one category: shirt, pants, or other.',
+      'Return one line for each image in this strict format only:',
+      'CLASSIFICATION | filename=<filename> | category=<shirt|pants|other> | label=<short label>',
+      'Do not skip any image and do not add extra text.',
+      '',
+      'Images in this request:',
+      ...diskFiles.map((item) => `- ${item.filename}`),
+    ].join('\n');
+
+    const messages = [
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: instruction },
+          ...diskFiles.map((item) => ({
+            type: 'image_url',
+            image_url: {
+              url: `data:${item.mime};base64,${item.buffer.toString('base64')}`,
+            },
+          })),
+        ],
+      },
+    ];
+
+    const completion = await createCompletionWithKeyRotation({
+      groqKeys,
+      model,
+      messages,
+      temperature: 0,
+    });
+
+    const text = extractAssistantText(completion);
+    const parsed = parseClassificationLines(text);
+
+    const byFilename = new Map(parsed.map((item) => [item.filename, item]));
+    const classified = diskFiles.map((item) => {
+      const row = byFilename.get(item.filename);
+      const category = row?.category || 'other';
+
+      return {
+        filename: item.filename,
+        url: `/uploads/${item.filename}`,
+        category,
+        label: row?.label || item.filename,
+      };
+    });
+
+    return res.status(200).json({
+      shirts: classified.filter((item) => item.category === 'shirt'),
+      pants: classified.filter((item) => item.category === 'pants'),
+      other: classified.filter((item) => item.category === 'other'),
+      all: classified,
+      rawResponse: text,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Failed to classify uploaded images.',
+      details: error?.message || 'Unknown error.',
+    });
+  }
+});
 
 function buildBatchInstruction({ selectedPrompt, type, totalImages, batchNumber, totalBatches, batchItems, carryForwardScoreContext }) {
   const imageOrderText = batchItems
@@ -316,6 +464,274 @@ function extractImageScoreLines(text) {
 
   return normalized;
 }
+
+function inferMimeFromFilename(filename) {
+  const lower = String(filename || '').toLowerCase();
+
+  if (lower.endsWith('.png')) return 'image/png';
+  if (lower.endsWith('.webp')) return 'image/webp';
+  if (lower.endsWith('.gif')) return 'image/gif';
+  if (lower.endsWith('.bmp')) return 'image/bmp';
+  if (lower.endsWith('.svg')) return 'image/svg+xml';
+  if (lower.endsWith('.avif')) return 'image/avif';
+  return 'image/jpeg';
+}
+
+function normalizeSelectionItems(items, type) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .map((item, index) => {
+      const rawUrl = typeof item?.imageUrl === 'string'
+        ? item.imageUrl
+        : typeof item?.url === 'string'
+          ? item.url
+          : null;
+      const filenameFromUrl = rawUrl && rawUrl.includes('/uploads/')
+        ? rawUrl.split('/uploads/').pop()
+        : null;
+      const filename = path.basename(
+        typeof item?.filename === 'string' && item.filename.trim().length > 0
+          ? item.filename
+          : filenameFromUrl || '',
+      );
+
+      const localPath = filename ? path.resolve(uploadsDir, filename) : null;
+      const existsOnDisk = Boolean(localPath && fs.existsSync(localPath));
+
+      return {
+        id: `${type}-${index + 1}`,
+        name: typeof item?.name === 'string' && item.name.trim().length > 0 ? item.name : `${type} ${index + 1}`,
+        imageUrl: rawUrl,
+        filename: filename || null,
+        localPath: existsOnDisk ? localPath : null,
+      };
+    })
+    .filter((item) => item.localPath || item.imageUrl);
+}
+
+function toImageContentParts(items, heading) {
+  const parts = [{ type: 'text', text: heading }];
+
+  for (const item of items) {
+    parts.push({ type: 'text', text: `${item.id}: ${item.name}` });
+
+    if (item.localPath) {
+      const buffer = fs.readFileSync(item.localPath);
+      const mime = inferMimeFromFilename(item.filename);
+      parts.push({
+        type: 'image_url',
+        image_url: {
+          url: `data:${mime};base64,${buffer.toString('base64')}`,
+        },
+      });
+      continue;
+    }
+
+    if (item.imageUrl && /^https?:\/\//i.test(item.imageUrl)) {
+      parts.push({
+        type: 'image_url',
+        image_url: {
+          url: item.imageUrl,
+        },
+      });
+    }
+  }
+
+  return parts;
+}
+
+function parseOneGrade(text) {
+  const line = String(text || '')
+    .split('\n')
+    .map((entry) => entry.trim())
+    .find((entry) => entry.toUpperCase().startsWith('GRADE_RESULT |'));
+
+  if (!line) {
+    return { score: 0, reason: 'No grading result was returned.' };
+  }
+
+  const score = Number(line.match(/score\s*=\s*(\d{1,3})/i)?.[1] || 0);
+  const reason = line.match(/reason\s*=\s*(.+)$/i)?.[1]?.trim() || 'No reason provided.';
+
+  return {
+    score: Math.max(0, Math.min(100, score)),
+    reason,
+  };
+}
+
+function parseManyRanks(text) {
+  const lines = String(text || '')
+    .split('\n')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.toUpperCase().startsWith('PAIR_RANK |'));
+
+  return lines.map((line) => ({
+    pairId: line.match(/pair_id\s*=\s*([^|]+)/i)?.[1]?.trim() || '',
+    rank: Number(line.match(/rank\s*=\s*(\d+)/i)?.[1] || 999),
+    score: Math.max(0, Math.min(100, Number(line.match(/score\s*=\s*(\d{1,3})/i)?.[1] || 0))),
+    reason: line.match(/reason\s*=\s*(.+)$/i)?.[1]?.trim() || 'No reason provided.',
+  })).filter((item) => item.pairId.length > 0);
+}
+
+router.post('/wardrobe/grade-selection', async (req, res) => {
+  try {
+    const mode = req.body?.mode === 'many' ? 'many' : 'one';
+    const tops = normalizeSelectionItems(req.body?.tops, 'top');
+    const pants = normalizeSelectionItems(req.body?.pants, 'bottom');
+
+    if (mode === 'one') {
+      if (tops.length !== 1 || pants.length !== 1) {
+        return res.status(400).json({ error: 'One mode requires exactly one top and one bottom.' });
+      }
+    }
+
+    if (mode === 'many') {
+      if (tops.length === 0 || pants.length === 0) {
+        return res.status(400).json({ error: 'Many mode requires at least one top and one bottom.' });
+      }
+
+      if (tops.length > 4 || pants.length > 4) {
+        return res.status(400).json({ error: 'Many mode allows a maximum of 4 tops and 4 bottoms.' });
+      }
+    }
+
+    const groqKeys = getGroqApiKeys();
+    if (groqKeys.length === 0) {
+      return res.status(500).json({ error: 'Missing GROQ_API_KEY or GROQ_API_KEYS environment configuration.' });
+    }
+
+    const model = process.env.GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
+
+    if (mode === 'one') {
+      const top = tops[0];
+      const bottom = pants[0];
+      const content = [
+        {
+          type: 'text',
+          text: [
+            'You are an expert fashion grader.',
+            'Grade this single outfit pair (one top + one bottom) with strict consistency.',
+            'Use this rubric: color harmony (40), contrast/balance (25), versatility (20), visual cohesion (15).',
+            'Scores must be integers and deterministic for the same inputs.',
+            'Return exactly one line in this strict format:',
+            'GRADE_RESULT | score=<0-100> | reason=<1-2 concise sentences>',
+            'No extra lines or commentary.',
+          ].join('\n'),
+        },
+        ...toImageContentParts([top], 'Top image:'),
+        ...toImageContentParts([bottom], 'Bottom image:'),
+      ];
+
+      const completion = await createCompletionWithKeyRotation({
+        groqKeys,
+        model,
+        messages: [{ role: 'user', content }],
+        temperature: 0,
+      });
+
+      const text = extractAssistantText(completion);
+      const grade = parseOneGrade(text);
+
+      return res.status(200).json({
+        mode,
+        result: {
+          id: 'one-result',
+          top,
+          bottom,
+          score: grade.score,
+          reason: grade.reason,
+          rank: 1,
+        },
+        rawResponse: text,
+      });
+    }
+
+    const candidatePairs = [];
+    let counter = 1;
+    for (const top of tops) {
+      for (const bottom of pants) {
+        candidatePairs.push({
+          pairId: `P${counter}`,
+          top,
+          bottom,
+        });
+        counter += 1;
+      }
+    }
+
+    const pairsText = candidatePairs
+      .map((pair) => `${pair.pairId}: ${pair.top.id} + ${pair.bottom.id}`)
+      .join('\n');
+
+    const content = [
+      {
+        type: 'text',
+        text: [
+          'You are an expert fashion grader.',
+          'Rank outfit combinations from best to worst with strict consistency.',
+          'Use this rubric: color harmony (40), contrast/balance (25), versatility (20), visual cohesion (15).',
+          'Break ties by stronger color harmony, then by versatility.',
+          'Candidate pairs:',
+          pairsText,
+          '',
+          'Return ONLY lines in this strict format:',
+          'PAIR_RANK | rank=<1..N> | pair_id=<pair id> | score=<0-100> | reason=<1 short sentence>',
+          'Include all candidate pairs exactly once.',
+          'No extra text.',
+        ].join('\n'),
+      },
+      ...toImageContentParts(tops, 'Top images:'),
+      ...toImageContentParts(pants, 'Bottom images:'),
+    ];
+
+    const completion = await createCompletionWithKeyRotation({
+      groqKeys,
+      model,
+      messages: [{ role: 'user', content }],
+      temperature: 0,
+    });
+
+    const text = extractAssistantText(completion);
+    const parsedRanks = parseManyRanks(text);
+    const rankByPairId = new Map(parsedRanks.map((item) => [item.pairId, item]));
+
+    const rankings = candidatePairs
+      .map((pair, index) => {
+        const parsed = rankByPairId.get(pair.pairId);
+        return {
+          id: pair.pairId,
+          top: pair.top,
+          bottom: pair.bottom,
+          rank: parsed?.rank ?? index + 1,
+          score: parsed?.score ?? 0,
+          reason: parsed?.reason ?? 'No reason provided.',
+        };
+      })
+      .sort((a, b) => a.rank - b.rank)
+      .map((entry, index) => ({
+        ...entry,
+        rank: index + 1,
+      }));
+
+    return res.status(200).json({
+      mode,
+      rankings,
+      rawResponse: text,
+    });
+  } catch (error) {
+    if (error?.statusCode === 429) {
+      return res.status(429).json({ error: error.publicMessage || error.message, details: error.message });
+    }
+
+    return res.status(500).json({
+      error: 'Failed to grade selected outfits.',
+      details: error?.message || 'Unknown error.',
+    });
+  }
+});
 
 router.post('/wardrobe/analyze', upload.array('images'), async (req, res) => {
   try {
