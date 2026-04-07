@@ -88,19 +88,8 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: createError.message });
     }
 
-    const signInResult = await supabaseAuth.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signInResult.error || !signInResult.data.session?.access_token) {
-      return res.status(401).json({ message: 'Account created but auto-login failed. Please log in manually.' });
-    }
-
-    setAuthCookie(res, signInResult.data.session.access_token);
-
     return res.status(201).json({
-      message: 'Registration successful',
+      message: 'Registration successful. Please log in.',
       user: {
         id: createData.user.id,
         email: createData.user.email,

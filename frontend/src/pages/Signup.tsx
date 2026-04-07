@@ -37,7 +37,7 @@ const Signup: React.FC = () => {
         password,
         name: trimmedFirstName,
       });
-      navigate("/home", { replace: true });
+      navigate("/login", { replace: true });
     } catch (registerError) {
       const message = registerError instanceof Error ? registerError.message : "Signup failed";
       setError(message);
